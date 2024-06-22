@@ -2,16 +2,19 @@ import { sample } from 'lodash';
 import { Player, Team } from './Player';
 import { names } from '../prompts/names';
 import { GameLog } from './GameLog';
+import { GameStage } from './GameStage';
 
 export class GameState {
   #machinePlayers: Player[];
   #humanPlayer: Player;
   #log: GameLog;
+  #stage: GameStage;
 
   constructor(machinePlayers: Player[], humanPlayer: Player) {
     this.#machinePlayers = machinePlayers;
     this.#humanPlayer = humanPlayer;
     this.#log = new GameLog();
+    this.#stage = new GameStage(this.machinePlayers[0]);
   }
 
   get machinePlayers(): Player[] {
@@ -20,6 +23,10 @@ export class GameState {
 
   get humanPlayer(): Player {
     return this.#humanPlayer;
+  }
+
+  get stage(): GameStage {
+    return this.#stage;
   }
 }
 
