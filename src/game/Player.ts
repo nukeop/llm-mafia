@@ -1,6 +1,6 @@
 export enum Team {
-  Machines,
-  Humans,
+  Machines = 'Machines',
+  Humans = 'Humans',
 }
 
 export class Player {

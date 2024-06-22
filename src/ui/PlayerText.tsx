@@ -3,13 +3,13 @@ import { Text } from 'ink';
 
 type PlayerTextProps = {
   name: string;
-  text: string;
+  content: string;
 };
-export const PlayerText = ({ name, text }: PlayerTextProps) => {
+export const PlayerText = ({ name, content }: PlayerTextProps) => {
   return (
     <>
       <Text color="green">
-        [{name}]: <Text color="white">{text}</Text>
+        [{name}]: <Text color="white">{content}</Text>
       </Text>
     </>
   );
