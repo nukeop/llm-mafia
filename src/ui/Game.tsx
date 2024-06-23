@@ -33,7 +33,7 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
         flexDirection="column"
         flexGrow={1}
       >
-        <ChatWindow messages={gameState.log.messages} />
+        <ChatWindow messages={gameState.log.messages} linesToShow={10} />
       </Box>
       <Spacer />
       {gameState.stage.isHumanTurn() && (

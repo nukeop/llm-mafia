@@ -52,7 +52,6 @@ export class GameState {
       this.stage.actingPlayer.personality!,
     );
     const log = this.log.formatLogForLLM(this.stage.actingPlayer);
-    Logger.debug(JSON.stringify(log, null, 2));
     const service = new OpenAiApiService();
     const response = await service.createChatCompletion({
       max_tokens: 512,
@@ -91,7 +90,12 @@ export class GameState {
       }
 
       if (actionType === ActionType.Vote) {
-        // this.stage.addVote(this.stage.actingPlayer, toolCallBody.target);
+        this.log.addPlayerAction(
+          this.stage.actingPlayer,
+          toolCallBody.target,
+          ActionType.Vote,
+          toolCall.id,
+        );
       }
 
       if (actionType === ActionType.EndTurn) {
