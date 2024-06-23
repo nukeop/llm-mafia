@@ -90,10 +90,17 @@ export class GameLog {
           content: `[Announcer}: ${message.content}`,
         };
 
-      return {
-        role: message.player === player ? 'assistant' : 'user',
-        content: `[${message.player.name}]: ${message.content}`,
-      };
+      if (message.actionType === ActionType.Thought) {
+        return {
+          role: 'assistant',
+          content: `[${message.player.name}](Thought): ${message.content}`,
+        };
+      } else {
+        return {
+          role: message.player === player ? 'assistant' : 'user',
+          content: `[${message.player.name}]: ${message.content}`,
+        };
+      }
     });
   }
 

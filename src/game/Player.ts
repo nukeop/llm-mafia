@@ -7,5 +7,6 @@ export class Player {
   constructor(
     public name: string,
     public team: Team,
+    public personality?: string,
   ) {}
 }

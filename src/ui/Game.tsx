@@ -24,6 +24,8 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
     }
   });
 
+  Logger.info(JSON.stringify(gameState.log.messages, null, 2));
+
   return (
     <Box padding={2} flexGrow={1} flexDirection="column">
       <Box
@@ -51,6 +53,8 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
             case MessageType.Error: {
               return <ErrorText key={index} content={message.content} />;
             }
+            default:
+              return null;
           }
         })}
       </Box>

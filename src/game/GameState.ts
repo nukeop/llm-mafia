@@ -7,6 +7,8 @@ import { createSystemPrompt } from '../prompts';
 import { OpenAiApiService } from '../services/OpenAiService';
 import { tools } from '../prompts/tools';
 import Logger from '../logger';
+import { safeParse } from '../json-utils';
+import { personalities } from '../prompts/personalities';
 
 export class GameState {
   #machinePlayers: Player[];
@@ -37,9 +39,20 @@ export class GameState {
     return this.#stage;
   }
 
+  playerNames(): string[] {
+    return [this.humanPlayer, ...this.machinePlayers].map(
+      (player) => player.name,
+    );
+  }
+
   async processPlayerAction(): Promise<void> {
-    const prompt = createSystemPrompt(this.stage.actingPlayer.name);
+    const prompt = createSystemPrompt(
+      this.stage.actingPlayer.name,
+      this.playerNames(),
+      this.stage.actingPlayer.personality!,
+    );
     const log = this.log.formatLogForLLM(this.stage.actingPlayer);
+    Logger.debug(JSON.stringify(log, null, 2));
     const service = new OpenAiApiService();
     const response = await service.createChatCompletion({
       max_tokens: 512,
@@ -50,39 +63,50 @@ export class GameState {
     });
 
     const choice = response.choices[0];
+    Logger.debug(JSON.stringify(choice, null, 2));
     const toolCall = choice.message?.tool_calls?.[0];
-    const toolCallBody = JSON.parse(toolCall?.function.arguments!);
-    const action = toolCall?.function.name;
-    const actionType: ActionType = action as ActionType;
+    const message = choice.message?.content;
 
-    Logger.debug(JSON.stringify(response.choices[0]));
-    Logger.debug(`Action: ${action}`);
+    if (toolCall) {
+      const toolCallBody = safeParse(toolCall?.function.arguments!);
+      const action = toolCall?.function.name;
+      const actionType: ActionType = action as ActionType;
+      Logger.debug(`Action: ${action}`);
 
-    if (actionType === ActionType.Speech) {
+      if (actionType === ActionType.Speech) {
+        this.log.addPlayerAction(
+          this.stage.actingPlayer,
+          toolCallBody.content,
+          ActionType.Speech,
+        );
+      }
+
+      if (actionType === ActionType.Thought) {
+        this.log.addPlayerAction(
+          this.stage.actingPlayer,
+          toolCallBody.content,
+          ActionType.Thought,
+        );
+      }
+
+      if (actionType === ActionType.Vote) {
+        // this.stage.addVote(this.stage.actingPlayer, toolCallBody.target);
+      }
+
+      if (actionType === ActionType.EndTurn) {
+        return;
+      }
+
+      await this.processPlayerAction();
+    } else if (message) {
       this.log.addPlayerAction(
         this.stage.actingPlayer,
-        toolCallBody.content,
+        message,
         ActionType.Speech,
       );
-    }
 
-    if (actionType === ActionType.Thought) {
-      this.log.addPlayerAction(
-        this.stage.actingPlayer,
-        toolCallBody.content,
-        ActionType.Thought,
-      );
+      await this.processPlayerAction();
     }
-
-    if (actionType === ActionType.Vote) {
-      // this.stage.addVote(this.stage.actingPlayer, toolCallBody.target);
-    }
-
-    if (actionType === ActionType.EndTurn) {
-      return;
-    }
-
-    await this.processPlayerAction();
   }
 
   async advance() {
@@ -115,13 +139,13 @@ export const initGameState = (numberOfPlayers: number): GameState => {
   const machinePlayers = Array.from({ length: numberOfPlayers }, (_) => {
     const name = sample(availableNames) ?? '';
     availableNames = availableNames.filter((n) => n !== name);
-    return new Player(name ?? '', Team.Machines);
+    return new Player(name!, Team.Machines, sample(personalities)!);
   });
 
   const humanName = sample(names) ?? '';
   const state = new GameState(
     machinePlayers,
-    new Player(humanName, Team.Humans),
+    new Player(humanName!, Team.Humans),
   );
   state.stage.connectGameState(state);
   return state;
