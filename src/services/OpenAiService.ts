@@ -4,6 +4,7 @@ import {
   ChatCompletionCreateParamsNonStreaming,
 } from 'openai/resources';
 import { retryWithExponentialBackoff } from '../async-utils';
+import Logger from '../logger';
 
 export class OpenAiApiService {
   #client: OpenAI;
@@ -23,6 +24,9 @@ export class OpenAiApiService {
           ...createChatCompletionRequest,
           stream: false,
         }),
+      onError: (error) => {
+        Logger.error(`Error creating chat completion: ${error.message}`);
+      },
     }));
   }
 }

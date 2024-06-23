@@ -71,13 +71,13 @@ export class GameState {
       const toolCallBody = safeParse(toolCall?.function.arguments!);
       const action = toolCall?.function.name;
       const actionType: ActionType = action as ActionType;
-      Logger.debug(`Action: ${action}`);
 
       if (actionType === ActionType.Speech) {
         this.log.addPlayerAction(
           this.stage.actingPlayer,
           toolCallBody.content,
           ActionType.Speech,
+          toolCall.id,
         );
       }
 
@@ -86,6 +86,7 @@ export class GameState {
           this.stage.actingPlayer,
           toolCallBody.content,
           ActionType.Thought,
+          toolCall.id,
         );
       }
 

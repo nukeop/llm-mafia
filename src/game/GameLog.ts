@@ -20,6 +20,9 @@ type PlayerAction = {
   content: string;
   actionType: ActionType;
   type: MessageType.PlayerAction;
+
+  // OpenAI API call ID
+  callId?: string;
 };
 
 type SystemMessage = {
@@ -54,12 +57,18 @@ export class GameLog {
     return this.#messages;
   }
 
-  addPlayerAction(player: Player, content: string, actionType: ActionType) {
+  addPlayerAction(
+    player: Player,
+    content: string,
+    actionType: ActionType,
+    callId?: string,
+  ) {
     this.#messages.push({
       player,
       content,
       type: MessageType.PlayerAction,
       actionType,
+      callId,
     });
   }
 
@@ -83,25 +92,61 @@ export class GameLog {
         (isThought(message) && (message as PlayerAction).player === player),
     ) as (PlayerAction | AnnouncerMessage)[];
 
-    return messages.map((message) => {
-      if (isAnnouncerMessage(message))
-        return {
+    return messages.reduce((result: ChatCompletionMessageParam[], message) => {
+      if (isAnnouncerMessage(message)) {
+        result.push({
           role: 'user',
           content: `[Announcer}: ${message.content}`,
-        };
-
-      if (message.actionType === ActionType.Thought) {
-        return {
+        });
+      } else if (message.actionType === ActionType.Thought) {
+        result.push({
           role: 'assistant',
-          content: `[${message.player.name}](Thought): ${message.content}`,
-        };
+          tool_calls: [
+            {
+              id: message.callId ?? '',
+              type: 'function',
+              function: {
+                name: ActionType.Thought,
+                arguments: JSON.stringify({ content: message.content }),
+              },
+            },
+          ],
+        });
+
+        result.push({
+          role: 'tool',
+          tool_call_id: message.callId ?? '',
+          content: 'Success',
+        });
       } else {
-        return {
-          role: message.player === player ? 'assistant' : 'user',
-          content: `[${message.player.name}]: ${message.content}`,
-        };
+        if (message.player === player) {
+          result.push({
+            role: 'assistant',
+            tool_calls: [
+              {
+                id: message.callId ?? '',
+                type: 'function',
+                function: {
+                  name: ActionType.Speech,
+                  arguments: JSON.stringify({ content: message.content }),
+                },
+              },
+            ],
+          });
+          result.push({
+            role: 'tool',
+            tool_call_id: message.callId ?? '',
+            content: 'Success',
+          });
+        } else {
+          result.push({
+            role: 'user',
+            content: `[${message.player.name}]: ${message.content}`,
+          });
+        }
       }
-    });
+      return result;
+    }, []);
   }
 
   formatLogForGameEnd(): string {
