@@ -39,33 +39,41 @@ export class GameState {
     if (this.stage.actingPlayer === this.humanPlayer) {
       this.stage.nextPlayer();
     } else {
-      const prompt = createSystemPrompt(this.stage.actingPlayer.name);
-      const log = this.log.formatLogForLLM(this.stage.actingPlayer);
-      const service = new OpenAiApiService();
-      const response = await service.createChatCompletion({
-        max_tokens: 512,
-        model: 'gpt-4o',
-        messages: [{ role: 'system', content: prompt }, ...log],
-      });
+      try {
+        const prompt = createSystemPrompt(this.stage.actingPlayer.name);
+        const log = this.log.formatLogForLLM(this.stage.actingPlayer);
+        const service = new OpenAiApiService();
+        const response = await service.createChatCompletion({
+          max_tokens: 512,
+          model: 'gpt-4o',
+          messages: [{ role: 'system', content: prompt }, ...log],
+        });
 
-      const responseMessage = response.choices[0].message?.content?.replace(
-        `[${this.stage.actingPlayer.name}]:`,
-        '',
-      );
+        const responseMessage = response.choices[0].message?.content?.replace(
+          `[${this.stage.actingPlayer.name}]:`,
+          '',
+        );
 
-      const lines = responseMessage?.split('\n');
-      const thought = lines?.find((line) => line.startsWith('[Thought]'));
-      const speech = lines?.find((line) => line.startsWith('[Speech]'));
+        const lines = responseMessage?.split('\n');
+        const thought = lines?.find((line) => line.startsWith('[Thought]'));
+        const speech = lines?.find((line) => line.startsWith('[Speech]'));
 
-      if (thought) {
-        this.log.addPlayerMessage(this.stage.actingPlayer, true, thought);
+        if (thought) {
+          this.log.addPlayerMessage(this.stage.actingPlayer, true, thought);
+        }
+
+        if (speech) {
+          this.log.addPlayerMessage(this.stage.actingPlayer, false, speech);
+        }
+
+        this.stage.nextPlayer();
+      } catch (error) {
+        this.log.addErrorMessage(
+          'An error occurred while processing the machine turn.',
+        );
+        this.log.addErrorMessage((error as Error).message);
+        this.stage.nextPlayer();
       }
-
-      if (speech) {
-        this.log.addPlayerMessage(this.stage.actingPlayer, false, speech);
-      }
-
-      this.stage.nextPlayer();
     }
   }
 }

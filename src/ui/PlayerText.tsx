@@ -1,15 +1,16 @@
 import React from 'react';
 import { Text } from 'ink';
+import { Player, Team } from '../game/Player';
 
 type PlayerTextProps = {
-  name: string;
+  player: Player;
   content: string;
 };
-export const PlayerText = ({ name, content }: PlayerTextProps) => {
+export const PlayerText = ({ player, content }: PlayerTextProps) => {
   return (
     <>
-      <Text color="green">
-        [{name}]: <Text color="white">{content}</Text>
+      <Text color={player.team === Team.Machines ? 'green' : 'blue'}>
+        [{player.name}]: <Text color="white">{content}</Text>
       </Text>
     </>
   );

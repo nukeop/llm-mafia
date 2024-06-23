@@ -13,6 +13,7 @@ import { Game } from './ui/Game';
   gameState.log.addSystemMessage(
     `The machine players are:\n ${gameState.machinePlayers.map((player) => player.name).join('\n ')}.`,
   );
+  gameState.log.addSystemMessage(`You are ${gameState.humanPlayer.name}.`);
 
   render(<Game gameState={gameState} />);
 })();

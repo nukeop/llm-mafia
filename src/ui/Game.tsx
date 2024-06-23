@@ -7,6 +7,7 @@ import { PlayerText } from './PlayerText';
 import { SystemText } from './SystemText';
 import { isPlayerMessage } from '../game/GameLog';
 import { ChatBox } from './ChatBox';
+import { ErrorText } from './ErrorText';
 
 type GameProps = {
   gameState: GameState;
@@ -31,19 +32,29 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
         flexDirection="column"
         flexGrow={1}
       >
-        {gameState.log.messages.map((message, index) =>
-          isPlayerMessage(message) ? (
-            !message.thought && (
-              <PlayerText
-                key={index}
-                name={message.player.name}
-                content={message.content}
-              />
-            )
-          ) : (
-            <SystemText key={index} content={message.content} />
-          ),
-        )}
+        {gameState.log.messages.map((message, index) => {
+          switch (message.type) {
+            case 'player': {
+              if (isPlayerMessage(message)) {
+                if (!message.thought) {
+                  return (
+                    <PlayerText
+                      key={index}
+                      player={message.player}
+                      content={message.content}
+                    />
+                  );
+                }
+              }
+            }
+            case 'system': {
+              return <SystemText key={index} content={message.content} />;
+            }
+            case 'error': {
+              return <ErrorText key={index} content={message.content} />;
+            }
+          }
+        })}
       </Box>
       <Spacer />
       {gameState.stage.isHumanTurn() && (

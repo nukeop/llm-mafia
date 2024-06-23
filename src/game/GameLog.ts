@@ -13,14 +13,21 @@ type SystemMessage = {
   type: 'system';
 };
 
+type ErrorMessage = {
+  content: string;
+  type: 'error';
+};
+
+type LogMessage = PlayerMessage | SystemMessage | ErrorMessage;
+
 export class GameLog {
-  #messages: (PlayerMessage | SystemMessage)[] = [];
+  #messages: LogMessage[] = [];
 
   constructor() {
     this.#messages = [];
   }
 
-  get messages(): (PlayerMessage | SystemMessage)[] {
+  get messages(): LogMessage[] {
     return this.#messages;
   }
 
@@ -30,6 +37,10 @@ export class GameLog {
 
   addSystemMessage(content: string) {
     this.#messages.push({ content, type: 'system' });
+  }
+
+  addErrorMessage(content: string) {
+    this.#messages.push({ content, type: 'error' });
   }
 
   formatLogForLLM(player: Player): ChatCompletionMessageParam[] {
@@ -44,14 +55,14 @@ export class GameLog {
   }
 }
 
-export function isPlayerMessage(
-  message: PlayerMessage | SystemMessage,
-): message is PlayerMessage {
+export function isPlayerMessage(message: LogMessage): message is PlayerMessage {
   return message.type === 'player';
 }
 
-export function isSystemMessage(
-  message: PlayerMessage | SystemMessage,
-): message is SystemMessage {
+export function isSystemMessage(message: LogMessage): message is SystemMessage {
   return message.type === 'system';
+}
+
+export function isErrorMessage(message: LogMessage): message is ErrorMessage {
+  return message.type === 'error';
 }
