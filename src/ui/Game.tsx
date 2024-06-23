@@ -8,6 +8,7 @@ import { ActionType, MessageType, isPlayerAction } from '../game/GameLog';
 import { ChatBox } from './ChatBox';
 import { ErrorText } from './ErrorText';
 import { Speech } from './Speech';
+import Logger from '../logger';
 
 type GameProps = {
   gameState: GameState;
