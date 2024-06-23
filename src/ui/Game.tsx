@@ -3,11 +3,11 @@ import Spinner from 'ink-spinner';
 
 import { GameState } from '../game/GameState';
 import React, { useState } from 'react';
-import { PlayerText } from './PlayerText';
 import { SystemText } from './SystemText';
-import { isPlayerMessage } from '../game/GameLog';
+import { ActionType, MessageType, isPlayerAction } from '../game/GameLog';
 import { ChatBox } from './ChatBox';
 import { ErrorText } from './ErrorText';
+import { Speech } from './Speech';
 
 type GameProps = {
   gameState: GameState;
@@ -34,23 +34,20 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
       >
         {gameState.log.messages.map((message, index) => {
           switch (message.type) {
-            case 'player': {
-              if (isPlayerMessage(message)) {
-                if (!message.thought) {
-                  return (
-                    <PlayerText
-                      key={index}
-                      player={message.player}
-                      content={message.content}
-                    />
-                  );
-                }
-              }
+            case MessageType.PlayerAction: {
+              if (message.actionType === ActionType.Speech)
+                return (
+                  <Speech
+                    key={index}
+                    player={message.player}
+                    content={message.content}
+                  />
+                );
             }
-            case 'system': {
+            case MessageType.System: {
               return <SystemText key={index} content={message.content} />;
             }
-            case 'error': {
+            case MessageType.Error: {
               return <ErrorText key={index} content={message.content} />;
             }
           }
@@ -60,10 +57,10 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
       {gameState.stage.isHumanTurn() && (
         <ChatBox
           onSend={async (message) => {
-            gameState.log.addPlayerMessage(
+            gameState.log.addPlayerAction(
               gameState.stage.actingPlayer,
-              false,
               message,
+              ActionType.Speech,
             );
             setLoading(true);
             await gameState.advance();

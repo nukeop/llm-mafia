@@ -2,11 +2,11 @@ import React from 'react';
 import { Text } from 'ink';
 import { Player, Team } from '../game/Player';
 
-type PlayerTextProps = {
+type SpeechProps = {
   player: Player;
   content: string;
 };
-export const PlayerText = ({ player, content }: PlayerTextProps) => {
+export const Speech = ({ player, content }: SpeechProps) => {
   return (
     <>
       <Text color={player.team === Team.Machines ? 'green' : 'blue'}>

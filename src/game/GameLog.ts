@@ -1,24 +1,47 @@
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { Player } from './Player';
 
-type PlayerMessage = {
+export enum ActionType {
+  Thought = 'thought',
+  Speech = 'speech',
+  Vote = 'vote',
+  EndTurn = 'end_turn',
+}
+
+export enum MessageType {
+  System = 'system',
+  Error = 'error',
+  PlayerAction = 'player_action',
+  Announcer = 'announcer',
+}
+
+type PlayerAction = {
   player: Player;
-  thought: boolean;
   content: string;
-  type: 'player';
+  actionType: ActionType;
+  type: MessageType.PlayerAction;
 };
 
 type SystemMessage = {
   content: string;
-  type: 'system';
+  type: MessageType.System;
 };
 
 type ErrorMessage = {
   content: string;
-  type: 'error';
+  type: MessageType.Error;
 };
 
-type LogMessage = PlayerMessage | SystemMessage | ErrorMessage;
+type AnnouncerMessage = {
+  content: string;
+  type: MessageType.Announcer;
+};
+
+type LogMessage =
+  | PlayerAction
+  | SystemMessage
+  | ErrorMessage
+  | AnnouncerMessage;
 
 export class GameLog {
   #messages: LogMessage[] = [];
@@ -31,38 +54,47 @@ export class GameLog {
     return this.#messages;
   }
 
-  addPlayerMessage(player: Player, thought: boolean, content: string) {
-    this.#messages.push({ player, thought, content, type: 'player' });
+  addPlayerAction(player: Player, content: string, actionType: ActionType) {
+    this.#messages.push({
+      player,
+      content,
+      type: MessageType.PlayerAction,
+      actionType,
+    });
   }
 
   addSystemMessage(content: string) {
-    this.#messages.push({ content, type: 'system' });
+    this.#messages.push({ content, type: MessageType.System });
   }
 
   addErrorMessage(content: string) {
-    this.#messages.push({ content, type: 'error' });
+    this.#messages.push({ content, type: MessageType.Error });
+  }
+
+  addAnnouncerMessage(content: string) {
+    this.#messages.push({ content, type: MessageType.Announcer });
   }
 
   formatLogForLLM(player: Player): ChatCompletionMessageParam[] {
     const messages = this.#messages.filter((message) =>
-      isPlayerMessage(message),
-    ) as PlayerMessage[];
+      isPlayerAction(message),
+    ) as PlayerAction[];
 
-    return messages.map((message: PlayerMessage) => ({
+    return messages.map((message: PlayerAction) => ({
       role: message.player === player ? 'assistant' : 'user',
       content: `[${message.player.name}]: ${message.content}`,
     }));
   }
 }
 
-export function isPlayerMessage(message: LogMessage): message is PlayerMessage {
-  return message.type === 'player';
+export function isPlayerAction(message: LogMessage): message is PlayerAction {
+  return message.type === MessageType.PlayerAction;
 }
 
 export function isSystemMessage(message: LogMessage): message is SystemMessage {
-  return message.type === 'system';
+  return message.type === MessageType.System;
 }
 
 export function isErrorMessage(message: LogMessage): message is ErrorMessage {
-  return message.type === 'error';
+  return message.type === MessageType.Error;
 }

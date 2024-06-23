@@ -1,10 +1,11 @@
 import { sample } from 'lodash';
 import { Player, Team } from './Player';
 import { names } from '../prompts/names';
-import { GameLog } from './GameLog';
+import { ActionType, GameLog } from './GameLog';
 import { GameStage } from './GameStage';
 import { createSystemPrompt } from '../prompts';
 import { OpenAiApiService } from '../services/OpenAiService';
+import { tools } from '../prompts/tools';
 
 export class GameState {
   #machinePlayers: Player[];
@@ -35,38 +36,66 @@ export class GameState {
     return this.#stage;
   }
 
+  async processPlayerAction() {
+    const prompt = createSystemPrompt(this.stage.actingPlayer.name);
+    const log = this.log.formatLogForLLM(this.stage.actingPlayer);
+    const service = new OpenAiApiService();
+    const response = await service.createChatCompletion({
+      max_tokens: 512,
+      model: 'gpt-4o',
+      tools,
+      messages: [{ role: 'system', content: prompt }, ...log],
+    });
+
+    const choice = response.choices[0];
+    const toolCall = choice.message?.tool_calls?.[0];
+    const action = toolCall?.function.name;
+    const actionType: ActionType = action as ActionType;
+    this.log.addPlayerAction(
+      this.stage.actingPlayer,
+      toolCall?.function.arguments ?? '',
+      actionType,
+    );
+
+    console.log(JSON.stringify(response.choices[0]));
+    process.exit();
+  }
+
   async advance() {
     if (this.stage.actingPlayer === this.humanPlayer) {
       this.stage.nextPlayer();
     } else {
       try {
-        const prompt = createSystemPrompt(this.stage.actingPlayer.name);
-        const log = this.log.formatLogForLLM(this.stage.actingPlayer);
-        const service = new OpenAiApiService();
-        const response = await service.createChatCompletion({
-          max_tokens: 512,
-          model: 'gpt-4o',
-          messages: [{ role: 'system', content: prompt }, ...log],
-        });
+        await this.processPlayerAction();
 
-        const responseMessage = response.choices[0].message?.content?.replace(
-          `[${this.stage.actingPlayer.name}]:`,
-          '',
-        );
+        // const prompt = createSystemPrompt(this.stage.actingPlayer.name);
+        // const log = this.log.formatLogForLLM(this.stage.actingPlayer);
+        // const service = new OpenAiApiService();
+        // const response = await service.createChatCompletion({
+        //   max_tokens: 512,
+        //   model: 'gpt-4o',
+        //   tools: [],
+        //   messages: [{ role: 'system', content: prompt }, ...log],
+        // });
 
-        const lines = responseMessage?.split('\n');
-        const thought = lines?.find((line) => line.startsWith('[Thought]'));
-        const speech = lines?.find((line) => line.startsWith('[Speech]'));
+        // const responseMessage = response.choices[0].message?.content?.replace(
+        //   `[${this.stage.actingPlayer.name}]:`,
+        //   '',
+        // );
 
-        if (thought) {
-          this.log.addPlayerMessage(this.stage.actingPlayer, true, thought);
-        }
+        // const lines = responseMessage?.split('\n');
+        // const thought = lines?.find((line) => line.startsWith('[Thought]'));
+        // const speech = lines?.find((line) => line.startsWith('[Speech]'));
 
-        if (speech) {
-          this.log.addPlayerMessage(this.stage.actingPlayer, false, speech);
-        }
+        // if (thought) {
+        //   this.log.addPlayerMessage(this.stage.actingPlayer, true, thought);
+        // }
 
-        this.stage.nextPlayer();
+        // if (speech) {
+        //   this.log.addPlayerMessage(this.stage.actingPlayer, false, speech);
+        // }
+
+        // this.stage.nextPlayer();
       } catch (error) {
         this.log.addErrorMessage(
           'An error occurred while processing the machine turn.',

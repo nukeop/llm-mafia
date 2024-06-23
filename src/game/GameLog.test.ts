@@ -17,7 +17,7 @@ describe('Game log', () => {
   it('adds player messages', () => {
     const log = new GameLog();
     const player = new Player('Mr. Test', Team.Machines);
-    log.addPlayerMessage(player, false, 'Hello, world!');
+    log.addPlayerAction(player, false, 'Hello, world!');
 
     expect(log.messages).toEqual([
       {
@@ -38,10 +38,10 @@ describe('Game log', () => {
     const anotherPlayer = new Player('Mr. Test 2', Team.Machines);
 
     log.addSystemMessage('This message will be ignored');
-    log.addPlayerMessage(player, false, 'Hello, world!');
-    log.addPlayerMessage(anotherPlayer, true, 'I too am a player');
+    log.addPlayerAction(player, false, 'Hello, world!');
+    log.addPlayerAction(anotherPlayer, true, 'I too am a player');
     log.addSystemMessage('This message will also be ignored');
-    log.addPlayerMessage(player, false, 'Hello again!');
+    log.addPlayerAction(player, false, 'Hello again!');
 
     expect(log.formatLogForLLM(player)).toEqual([
       {
