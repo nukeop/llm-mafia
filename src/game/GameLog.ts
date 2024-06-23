@@ -40,7 +40,7 @@ type AnnouncerMessage = {
   type: MessageType.Announcer;
 };
 
-type LogMessage =
+export type LogMessage =
   | PlayerAction
   | SystemMessage
   | ErrorMessage

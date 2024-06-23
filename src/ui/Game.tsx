@@ -3,12 +3,10 @@ import Spinner from 'ink-spinner';
 
 import { GameState } from '../game/GameState';
 import React, { useState } from 'react';
-import { SystemText } from './SystemText';
-import { ActionType, MessageType, isPlayerAction } from '../game/GameLog';
+import { ActionType } from '../game/GameLog';
 import { ChatBox } from './ChatBox';
-import { ErrorText } from './ErrorText';
-import { Speech } from './Speech';
 import Logger from '../logger';
+import { ChatWindow } from './ChatWindow';
 
 type GameProps = {
   gameState: GameState;
@@ -35,28 +33,7 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
         flexDirection="column"
         flexGrow={1}
       >
-        {gameState.log.messages.map((message, index) => {
-          switch (message.type) {
-            case MessageType.PlayerAction: {
-              if (message.actionType === ActionType.Speech)
-                return (
-                  <Speech
-                    key={index}
-                    player={message.player}
-                    content={message.content}
-                  />
-                );
-            }
-            case MessageType.System: {
-              return <SystemText key={index} content={message.content} />;
-            }
-            case MessageType.Error: {
-              return <ErrorText key={index} content={message.content} />;
-            }
-            default:
-              return null;
-          }
-        })}
+        <ChatWindow messages={gameState.log.messages} />
       </Box>
       <Spacer />
       {gameState.stage.isHumanTurn() && (
