@@ -14,13 +14,15 @@ type GameProps = {
 export const Game: React.FC<GameProps> = ({ gameState }) => {
   const [isLoading, setLoading] = useState(false);
   const { exit } = useApp();
-  useInput((input, key) => {
+  useInput(async (input, key) => {
     if (input === 'q') {
       exit();
     }
 
     if (key.return) {
-      gameState.advance();
+      setLoading(true);
+      await gameState.advance();
+      setLoading(false);
     }
   });
 
@@ -28,11 +30,13 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
     <Container>
       {gameState.log.messages.map((message, index) =>
         isPlayerMessage(message) ? (
-          <PlayerText
-            key={index}
-            name={message.player.name}
-            content={message.content}
-          />
+          !message.thought && (
+            <PlayerText
+              key={index}
+              name={message.player.name}
+              content={message.content}
+            />
+          )
         ) : (
           <SystemText key={index} content={message.content} />
         ),

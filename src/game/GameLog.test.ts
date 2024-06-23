@@ -31,4 +31,31 @@ describe('Game log', () => {
       },
     ]);
   });
+
+  it('formats the log for the LLM API', () => {
+    const log = new GameLog();
+    const player = new Player('Mr. Test', Team.Machines);
+    const anotherPlayer = new Player('Mr. Test 2', Team.Machines);
+
+    log.addSystemMessage('This message will be ignored');
+    log.addPlayerMessage(player, false, 'Hello, world!');
+    log.addPlayerMessage(anotherPlayer, true, 'I too am a player');
+    log.addSystemMessage('This message will also be ignored');
+    log.addPlayerMessage(player, false, 'Hello again!');
+
+    expect(log.formatLogForLLM(player)).toEqual([
+      {
+        role: 'assistant',
+        content: '[Mr. Test]: Hello, world!',
+      },
+      {
+        role: 'user',
+        content: '[Mr. Test 2]: I too am a player',
+      },
+      {
+        role: 'assistant',
+        content: '[Mr. Test]: Hello again!',
+      },
+    ]);
+  });
 });

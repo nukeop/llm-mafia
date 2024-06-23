@@ -4,6 +4,7 @@ import { names } from '../prompts/names';
 import { GameLog } from './GameLog';
 import { GameStage } from './GameStage';
 import { createSystemPrompt } from '../prompts';
+import { OpenAiApiService } from '../services/OpenAiService';
 
 export class GameState {
   #machinePlayers: Player[];
@@ -39,6 +40,32 @@ export class GameState {
       // TODO
     } else {
       const prompt = createSystemPrompt(this.stage.actingPlayer.name);
+      const log = this.log.formatLogForLLM(this.stage.actingPlayer);
+      const service = new OpenAiApiService();
+      const response = await service.createChatCompletion({
+        max_tokens: 512,
+        model: 'gpt-4o',
+        messages: [{ role: 'system', content: prompt }, ...log],
+      });
+
+      const responseMessage = response.choices[0].message?.content?.replace(
+        `[${this.stage.actingPlayer.name}]:`,
+        '',
+      );
+
+      const lines = responseMessage?.split('\n');
+      const thought = lines?.find((line) => line.startsWith('[Thought]'));
+      const speech = lines?.find((line) => line.startsWith('[Speech]'));
+
+      if (thought) {
+        this.log.addPlayerMessage(this.stage.actingPlayer, true, thought);
+      }
+
+      if (speech) {
+        this.log.addPlayerMessage(this.stage.actingPlayer, false, speech);
+      }
+
+      this.stage.nextPlayer();
     }
   }
 }
@@ -50,5 +77,10 @@ export const initGameState = (numberOfPlayers: number): GameState => {
   );
 
   const humanName = sample(names) ?? '';
-  return new GameState(machinePlayers, new Player(humanName, Team.Humans));
+  const state = new GameState(
+    machinePlayers,
+    new Player(humanName, Team.Humans),
+  );
+  state.stage.connectGameState(state);
+  return state;
 };

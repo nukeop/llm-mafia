@@ -39,7 +39,7 @@ export class GameLog {
 
     return messages.map((message: PlayerMessage) => ({
       role: message.player === player ? 'assistant' : 'user',
-      content: message.content,
+      content: `[${message.player.name}]: ${message.content}`,
     }));
   }
 }
