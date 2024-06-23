@@ -37,7 +37,7 @@ export class GameState {
 
   async advance() {
     if (this.stage.actingPlayer === this.humanPlayer) {
-      // TODO
+      this.stage.nextPlayer();
     } else {
       const prompt = createSystemPrompt(this.stage.actingPlayer.name);
       const log = this.log.formatLogForLLM(this.stage.actingPlayer);

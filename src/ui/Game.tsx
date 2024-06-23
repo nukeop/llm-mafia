@@ -6,24 +6,16 @@ import React, { useState } from 'react';
 import { PlayerText } from './PlayerText';
 import { SystemText } from './SystemText';
 import { isPlayerMessage } from '../game/GameLog';
+import { ChatBox } from './ChatBox';
 
 type GameProps = {
   gameState: GameState;
 };
 export const Game: React.FC<GameProps> = ({ gameState }) => {
   const [isLoading, setLoading] = useState(false);
-  const [playerInput, setPlayerInput] = useState<string>('');
   const { exit } = useApp();
   useInput(async (input, key) => {
-    if (input) {
-      setPlayerInput((prev) => prev + input);
-    }
-
-    if (key.backspace) {
-      setPlayerInput((prev) => prev.slice(0, prev.length - 1));
-    }
-
-    if (key.return) {
+    if (!gameState.stage.isHumanTurn() && key.return) {
       setLoading(true);
       await gameState.advance();
       setLoading(false);
@@ -54,26 +46,36 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
         )}
       </Box>
       <Spacer />
-      <Box borderStyle="round" borderColor="green">
-        {isLoading && (
-          <Box>
-            <Spinner />
-          </Box>
-        )}
-        {!isLoading && (
-          <Box>
-            <Text color="yellow">Press</Text>
-            <Text color="green"> {`<Enter>`} </Text>
-            <Text color="yellow">to advance...</Text>
-          </Box>
-        )}
-        {gameState.stage.actingPlayer === gameState.humanPlayer && (
-          <>
-            <Text color="whiteBright">{'> '}</Text>
-            <Text>{playerInput}</Text>
-          </>
-        )}
-      </Box>
+      {gameState.stage.isHumanTurn() && (
+        <ChatBox
+          onSend={async (message) => {
+            gameState.log.addPlayerMessage(
+              gameState.stage.actingPlayer,
+              false,
+              message,
+            );
+            setLoading(true);
+            await gameState.advance();
+            setLoading(false);
+          }}
+        />
+      )}
+      {!gameState.stage.isHumanTurn() && (
+        <Box borderStyle="round" borderColor="green">
+          {isLoading && (
+            <Box>
+              <Spinner />
+            </Box>
+          )}
+          {!isLoading && (
+            <Box>
+              <Text color="yellow">Press</Text>
+              <Text color="green"> {`<Enter>`} </Text>
+              <Text color="yellow">to advance...</Text>
+            </Box>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

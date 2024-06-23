@@ -45,4 +45,8 @@ export class GameStage {
 
     return this.#actingPlayer;
   }
+
+  isHumanTurn(): boolean {
+    return this.#actingPlayer === this.#gameState?.humanPlayer;
+  }
 }
