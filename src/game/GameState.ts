@@ -71,10 +71,12 @@ export class GameState {
 }
 
 export const initGameState = (numberOfPlayers: number): GameState => {
-  const machinePlayers = Array.from(
-    { length: numberOfPlayers },
-    (_) => new Player(sample(names) ?? '', Team.Machines),
-  );
+  let availableNames = names;
+  const machinePlayers = Array.from({ length: numberOfPlayers }, (_) => {
+    const name = sample(availableNames) ?? '';
+    availableNames = availableNames.filter((n) => n !== name);
+    return new Player(name ?? '', Team.Machines);
+  });
 
   const humanName = sample(names) ?? '';
   const state = new GameState(

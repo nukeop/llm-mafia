@@ -1,7 +1,6 @@
 import { Box, Spacer, Text, useApp, useInput } from 'ink';
 import Spinner from 'ink-spinner';
 
-import { Container } from './Container';
 import { GameState } from '../game/GameState';
 import React, { useState } from 'react';
 import { PlayerText } from './PlayerText';
@@ -13,10 +12,15 @@ type GameProps = {
 };
 export const Game: React.FC<GameProps> = ({ gameState }) => {
   const [isLoading, setLoading] = useState(false);
+  const [playerInput, setPlayerInput] = useState<string>('');
   const { exit } = useApp();
   useInput(async (input, key) => {
-    if (input === 'q') {
-      exit();
+    if (input) {
+      setPlayerInput((prev) => prev + input);
+    }
+
+    if (key.backspace) {
+      setPlayerInput((prev) => prev.slice(0, prev.length - 1));
     }
 
     if (key.return) {
@@ -27,33 +31,49 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
   });
 
   return (
-    <Container>
-      {gameState.log.messages.map((message, index) =>
-        isPlayerMessage(message) ? (
-          !message.thought && (
-            <PlayerText
-              key={index}
-              name={message.player.name}
-              content={message.content}
-            />
-          )
-        ) : (
-          <SystemText key={index} content={message.content} />
-        ),
-      )}
+    <Box padding={2} flexGrow={1} flexDirection="column">
+      <Box
+        borderStyle="round"
+        borderColor="green"
+        padding={1}
+        flexDirection="column"
+        flexGrow={1}
+      >
+        {gameState.log.messages.map((message, index) =>
+          isPlayerMessage(message) ? (
+            !message.thought && (
+              <PlayerText
+                key={index}
+                name={message.player.name}
+                content={message.content}
+              />
+            )
+          ) : (
+            <SystemText key={index} content={message.content} />
+          ),
+        )}
+      </Box>
       <Spacer />
-      {isLoading && (
-        <Box>
-          <Spinner />
-        </Box>
-      )}
-      {!isLoading && (
-        <Box>
-          <Text color="yellow">Press</Text>
-          <Text color="green"> {`<Enter>`} </Text>
-          <Text color="yellow">to advance...</Text>
-        </Box>
-      )}
-    </Container>
+      <Box borderStyle="round" borderColor="green">
+        {isLoading && (
+          <Box>
+            <Spinner />
+          </Box>
+        )}
+        {!isLoading && (
+          <Box>
+            <Text color="yellow">Press</Text>
+            <Text color="green"> {`<Enter>`} </Text>
+            <Text color="yellow">to advance...</Text>
+          </Box>
+        )}
+        {gameState.stage.actingPlayer === gameState.humanPlayer && (
+          <>
+            <Text color="whiteBright">{'> '}</Text>
+            <Text>{playerInput}</Text>
+          </>
+        )}
+      </Box>
+    </Box>
   );
 };
