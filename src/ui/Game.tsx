@@ -22,17 +22,9 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
     }
   });
 
-  Logger.info(JSON.stringify(gameState.log.messages, null, 2));
-
   return (
     <Box padding={2} flexGrow={1} flexDirection="column">
-      <Box
-        borderStyle="round"
-        borderColor="green"
-        padding={1}
-        flexDirection="column"
-        flexGrow={1}
-      >
+      <Box flexDirection="column" flexGrow={1}>
         <ChatWindow messages={gameState.log.messages} linesToShow={10} />
       </Box>
       <Spacer />

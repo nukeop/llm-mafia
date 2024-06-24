@@ -94,7 +94,9 @@ export class GameLog {
       (message) =>
         isSpeech(message) ||
         isAnnouncerMessage(message) ||
-        (isThought(message) && (message as PlayerAction).player === player),
+        (isThought(message) && (message as PlayerAction).player === player) ||
+        (isVote(message) && (message as PlayerAction).player === player) ||
+        (isEndTurn(message) && (message as PlayerAction).player === player),
     ) as (PlayerAction | AnnouncerMessage)[];
 
     return messages.reduce((result: ChatCompletionMessageParam[], message) => {
@@ -103,7 +105,11 @@ export class GameLog {
           role: 'user',
           content: `[Announcer}: ${message.content}`,
         });
-      } else if (message.actionType === ActionType.Thought) {
+      } else if (
+        message.actionType === ActionType.Thought ||
+        message.actionType === ActionType.Vote ||
+        message.actionType === ActionType.EndTurn
+      ) {
         result.push({
           role: 'assistant',
           tool_calls: [
@@ -111,7 +117,7 @@ export class GameLog {
               id: message.callId ?? '',
               type: 'function',
               function: {
-                name: ActionType.Thought,
+                name: message.actionType,
                 arguments: JSON.stringify({ content: message.content }),
               },
             },
@@ -203,6 +209,14 @@ export function isSpeech(message: LogMessage): boolean {
 
 export function isThought(message: LogMessage): boolean {
   return isPlayerAction(message) && message.actionType === ActionType.Thought;
+}
+
+export function isVote(message: LogMessage): boolean {
+  return isPlayerAction(message) && message.actionType === ActionType.Vote;
+}
+
+export function isEndTurn(message: LogMessage): boolean {
+  return isPlayerAction(message) && message.actionType === ActionType.EndTurn;
 }
 
 export function actionTypeToString(actionType: ActionType): string {

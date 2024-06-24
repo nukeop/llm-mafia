@@ -92,7 +92,7 @@ export class GameState {
       if (actionType === ActionType.Vote) {
         this.log.addPlayerAction(
           this.stage.actingPlayer,
-          toolCallBody.target,
+          toolCallBody.player,
           ActionType.Vote,
           toolCall.id,
         );
