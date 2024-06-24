@@ -84,6 +84,11 @@ export class GameLog {
     this.#messages.push({ content, type: MessageType.Announcer });
   }
 
+  // Fetch messages in chunks based on a specified range
+  fetchMessagesInRange(startIndex: number, endIndex: number): LogMessage[] {
+    return this.#messages.slice(startIndex, endIndex);
+  }
+
   formatLogForLLM(player: Player): ChatCompletionMessageParam[] {
     const messages = this.#messages.filter(
       (message) =>
