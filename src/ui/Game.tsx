@@ -5,7 +5,6 @@ import { GameState } from '../game/GameState';
 import React, { useState } from 'react';
 import { ActionType } from '../game/GameLog';
 import { ChatBox } from './ChatBox';
-import Logger from '../logger';
 import { ChatWindow } from './ChatWindow';
 
 type GameProps = {
@@ -24,9 +23,7 @@ export const Game: React.FC<GameProps> = ({ gameState }) => {
 
   return (
     <Box padding={2} flexGrow={1} flexDirection="column">
-      <Box flexDirection="column" flexGrow={1}>
-        <ChatWindow messages={gameState.log.messages} linesToShow={10} />
-      </Box>
+      <ChatWindow messages={gameState.log.messages} linesToShow={10} />
       <Spacer />
       {gameState.stage.isHumanTurn() && (
         <ChatBox

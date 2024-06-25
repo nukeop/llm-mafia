@@ -6,6 +6,7 @@
   "scripts": {
     "start": "ts-node src/index.tsx",
     "start:dev": "nodemon --watch src --exec ts-node src/index.ts",
+    "demo": "ts-node src/demo/index.tsx",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "jest"
