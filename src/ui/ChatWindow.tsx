@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Static, Text, useInput } from 'ink';
+import { Box, Text, useInput } from 'ink';
 import { ActionType, LogMessage, MessageType } from '../game/GameLog';
 import { Speech } from './Speech';
 import { SystemText } from './SystemText';
 import { ErrorText } from './ErrorText';
 import { Vote } from './Vote';
+import Logger from '../logger';
 
 type ChatWindowProps = {
   messages: LogMessage[];
@@ -42,6 +43,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   });
 
   const visibleMessages = messages.slice(visibleRange.start, visibleRange.end);
+  const scrollProgress = visibleRange.start / (messages.length - linesToShow);
 
   return (
     <Box flexDirection="row">
@@ -49,6 +51,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         borderStyle="round"
         borderColor="green"
         flexDirection="column"
+        flexGrow={1}
         padding={1}
         height={linesToShow + 2}
       >
@@ -88,8 +91,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         flexDirection="column"
         alignItems="flex-end"
       >
-        <Text>Start: {visibleRange.start}</Text>
-        <Text>End: {visibleRange.end}</Text>
+        <Box width={1} height={linesToShow}>
+          <Text>
+            {Array.from({ length: linesToShow }).map((_, index) => {
+              const position = Math.floor(scrollProgress * (linesToShow - 1));
+              return index === position ? '▓' : '░';
+            })}
+          </Text>
+        </Box>
       </Box>
     </Box>
   );

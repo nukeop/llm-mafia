@@ -8,8 +8,8 @@ type ChatBoxProps = {
 export const ChatBox: React.FC<ChatBoxProps> = ({ onSend }) => {
   const [playerInput, setPlayerInput] = useState<string>('');
   useInput((input, key) => {
-    if (input) {
-      setPlayerInput((prev) => prev + input);
+    if (key.upArrow || key.downArrow) {
+      return;
     }
 
     if (key.backspace || key.delete) {
@@ -19,6 +19,10 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ onSend }) => {
     if (key.return) {
       onSend(playerInput);
       setPlayerInput('');
+    }
+
+    if (input) {
+      setPlayerInput((prev) => prev + input);
     }
   });
   return (

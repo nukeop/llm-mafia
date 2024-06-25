@@ -49,13 +49,16 @@ export class GameState {
     const prompt = createSystemPrompt(
       this.stage.actingPlayer.name,
       this.playerNames(),
-      this.stage.actingPlayer.personality!,
+      personalities.find(
+        (personality) =>
+          personality.name === this.stage.actingPlayer.personality,
+      )?.description!,
     );
     const log = this.log.formatLogForLLM(this.stage.actingPlayer);
     const service = new OpenAiApiService();
     const response = await service.createChatCompletion({
       max_tokens: 512,
-      model: 'gpt-4o',
+      model: 'gpt-3.5-turbo',
       tools,
       parallel_tool_calls: false,
       messages: [{ role: 'system', content: prompt }, ...log],
@@ -144,7 +147,7 @@ export const initGameState = (numberOfPlayers: number): GameState => {
   const machinePlayers = Array.from({ length: numberOfPlayers }, (_) => {
     const name = sample(availableNames) ?? '';
     availableNames = availableNames.filter((n) => n !== name);
-    return new Player(name!, Team.Machines, sample(personalities)!);
+    return new Player(name!, Team.Machines, sample(personalities)?.name);
   });
 
   const humanName = sample(names) ?? '';
