@@ -6,13 +6,13 @@ import React, { useState } from 'react';
 import { ActionType } from '../game/GameLog';
 import { ChatBox } from './ChatBox';
 import { ChatWindow } from './ChatWindow';
+import { useGameState } from '../game/providers/GameStateProvider';
 
-type GameProps = {
-  gameState: GameState;
-};
-export const Game: React.FC<GameProps> = ({ gameState }) => {
+type GameProps = {};
+export const Game: React.FC<GameProps> = () => {
   const [isLoading, setLoading] = useState(false);
   const { exit } = useApp();
+  const gameState = useGameState();
   useInput(async (input, key) => {
     if (!gameState.stage.isHumanTurn() && key.return) {
       setLoading(true);

@@ -4,6 +4,7 @@ import { ActionType } from '../game/GameLog';
 import { initGameState } from '../game/GameState';
 import { Game } from '../ui/Game';
 import { range, sample } from 'lodash';
+import { GameStateProvider } from '../game/providers/GameStateProvider';
 
 const lorem =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam porttitor lacus eu risus iaculis tincidunt. Nam feugiat, elit et semper laoreet, quam nulla volutpat dui, non mattis mi sem eget tortor. Sed scelerisque libero odio.';
@@ -13,8 +14,8 @@ const Demo: React.FC<{
 }> = ({ gameState }) => {
   useInput((input, key) => {
     if (key.downArrow) {
-      // console.log('Adding player action');
-      // console.log(gameState.log.messages);
+      console.log('Adding player action');
+      console.log(gameState.log.messages);
       gameState.log.addPlayerAction(
         sample(gameState.machinePlayers)!,
         lorem,
@@ -28,7 +29,11 @@ const Demo: React.FC<{
     }
   });
 
-  return <Game gameState={gameState} />;
+  return (
+    <GameStateProvider value={gameState}>
+      <Game />
+    </GameStateProvider>
+  );
 };
 
 (async () => {
