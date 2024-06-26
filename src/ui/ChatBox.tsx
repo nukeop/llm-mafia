@@ -7,6 +7,7 @@ type ChatBoxProps = {
 
 export const ChatBox: React.FC<ChatBoxProps> = ({ onSend }) => {
   const [playerInput, setPlayerInput] = useState<string>('');
+
   useInput((input, key) => {
     if (key.upArrow || key.downArrow) {
       return;
@@ -25,6 +26,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ onSend }) => {
       setPlayerInput((prev) => prev + input);
     }
   });
+
   return (
     <Box borderStyle="round" borderColor="green">
       <>

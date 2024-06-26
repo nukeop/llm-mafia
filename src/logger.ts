@@ -1,5 +1,7 @@
 export default class Logger {
   static #logger: Logger;
+  static logLevel: 'debug' | 'info' | 'warn' | 'error' =
+    process.env.LOG_LEVEL?.toLowerCase() as 'debug' | 'info' | 'warn' | 'error';
 
   private constructor() {}
 
@@ -33,10 +35,10 @@ export default class Logger {
     level: 'debug' | 'info' | 'warn' | 'error',
   ) {
     const colors = {
-      debug: '\x1b[34m', // Blue color
-      info: '\x1b[32m', // Green color
-      warn: '\x1b[33m', // Yellow color
-      error: '\x1b[31m', // Red color
+      debug: '\x1b[34m', // Blue
+      info: '\x1b[32m', // Green
+      warn: '\x1b[33m', // Yellow
+      error: '\x1b[31m', // Red
     };
 
     const resetColor = '\x1b[0m';
@@ -45,18 +47,35 @@ export default class Logger {
   }
 
   static debug(message: string, meta?: Record<string, unknown>) {
-    console.log(Logger.format(message, 'debug', meta));
+    if (Logger.shouldLog('debug')) {
+      console.log(Logger.format(message, 'debug', meta));
+    }
   }
 
   static info(message: string, meta?: Record<string, unknown>) {
-    console.log(Logger.format(message, 'info', meta));
+    if (Logger.shouldLog('info')) {
+      console.log(Logger.format(message, 'info', meta));
+    }
   }
 
   static warn(message: string, meta?: Record<string, unknown>) {
-    console.log(Logger.format(message, 'warn', meta));
+    if (Logger.shouldLog('warn')) {
+      console.log(Logger.format(message, 'warn', meta));
+    }
   }
 
   static error(message: string, meta?: Record<string, unknown>) {
-    console.error(Logger.format(message, 'error', meta));
+    if (Logger.shouldLog('error')) {
+      console.error(Logger.format(message, 'error', meta));
+    }
+  }
+
+  private static shouldLog(level: 'debug' | 'info' | 'warn' | 'error') {
+    const logLevels = ['debug', 'info', 'warn', 'error'];
+    const currentLogLevel = Logger.logLevel || 'info';
+    const currentLogLevelIndex = logLevels.indexOf(currentLogLevel);
+    const levelIndex = logLevels.indexOf(level);
+
+    return levelIndex >= currentLogLevelIndex;
   }
 }
