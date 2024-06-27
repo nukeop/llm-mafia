@@ -1,7 +1,7 @@
 import React from 'react';
 import { GameStateProvider, useGameState } from './GameStateProvider';
 import { Player, Team } from '../Player';
-import { GameLog, ActionType, PlayerAction } from '../GameLog';
+import { GameLog, ActionType, PlayerAction } from './GameLogProvider';
 import { GameStage } from '../GameStage';
 import { act, renderHook } from '@testing-library/react';
 

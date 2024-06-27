@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Player, Team } from '../Player';
-import { GameLog } from '../GameLog';
 import { sample } from 'lodash';
 import { OpenAiApiService } from '../../services/OpenAiService';
-import { ActionType } from '../GameLog';
+import { ActionType, useGameLog } from './GameLogProvider';
 import Logger from '../../logger';
 import { names } from '../../prompts/names';
 import { personalities } from '../../prompts/personalities';
@@ -14,7 +13,6 @@ interface GameStateContextType {
   machinePlayers: Player[];
   humanPlayer: Player;
   actingPlayer: Player;
-  log: GameLog;
   initGameState: (numberOfPlayers: number) => void;
   advance: () => Promise<void>;
   processPlayerAction: () => Promise<void>;
@@ -33,9 +31,9 @@ export const useGameState = () => {
   return context;
 };
 
-interface GameStateProviderProps {
+type GameStateProviderProps = {
   children: React.ReactNode;
-}
+};
 
 export const GameStateProvider: React.FC<GameStateProviderProps> = ({
   children,
@@ -44,18 +42,40 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
   const [humanPlayer, setHumanPlayer] = useState<Player>(
     new Player('', Team.Humans),
   );
-  const [log, setLog] = useState<GameLog>(new GameLog());
   const [actingPlayer, setActingPlayer] = useState<Player>(humanPlayer);
+  const {
+    messages,
+    addPlayerAction,
+    addSystemMessage,
+    addErrorMessage,
+    addAnnouncerMessage,
+    formatLogForLLM,
+    formatLogForGameEnd,
+  } = useGameLog();
+
+  useEffect(() => {
+    if (!machinePlayers.length || !humanPlayer.name) {
+      return;
+    }
+
+    addSystemMessage(
+      'Welcome to the LLM Mafia! You are the human player. The goal is to blend in while the machines try to eliminate you. Good luck!',
+    );
+    addSystemMessage(
+      `The machine players are:\n ${machinePlayers.map((player) => player.name).join('\n ')}.`,
+    );
+    addSystemMessage(`You are ${humanPlayer.name}.`);
+  }, [machinePlayers, humanPlayer]);
 
   const initGameState = (numberOfPlayers: number) => {
-    let availableNames = names;
+    let availableNames = [...names];
     const machinePlayersInit = Array.from({ length: numberOfPlayers }, (_) => {
       const name = sample(availableNames) ?? '';
       availableNames = availableNames.filter((n) => n !== name);
       return new Player(name!, Team.Machines, sample(personalities)?.name);
     });
 
-    const humanName = sample(names) ?? '';
+    const humanName = sample(availableNames) ?? '';
     const humanPlayerInit = new Player(humanName!, Team.Humans);
 
     setMachinePlayers(machinePlayersInit);
@@ -103,10 +123,8 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
         nextPlayer();
         Logger.debug(`Progressing to next player: ${actingPlayer.name}`);
       } catch (error) {
-        log.addErrorMessage(
-          'An error occurred while processing the machine turn.',
-        );
-        log.addErrorMessage((error as Error).message);
+        addErrorMessage('An error occurred while processing the machine turn.');
+        addErrorMessage((error as Error).message);
         nextPlayer();
       }
     }
@@ -121,7 +139,7 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
         (personality) => personality.name === actingPlayer.personality,
       )?.description!,
     );
-    const logForLLM = log.formatLogForLLM(actingPlayer);
+    const logForLLM = formatLogForLLM(actingPlayer);
     const response = await service.createChatCompletion({
       max_tokens: 512,
       model: 'gpt-3.5-turbo',
@@ -137,17 +155,15 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
 
     if (toolCall) {
       const actionType: ActionType = toolCall?.function.name as ActionType;
-      log.addPlayerAction(
+      addPlayerAction(
         actingPlayer,
         toolCall?.function.arguments!,
         actionType,
         toolCall.id,
       );
     } else if (message) {
-      log.addPlayerAction(actingPlayer, message, ActionType.Speech);
+      addPlayerAction(actingPlayer, message, ActionType.Speech);
     }
-
-    setLog(log);
   };
 
   return (
@@ -156,7 +172,6 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
         machinePlayers,
         humanPlayer,
         actingPlayer,
-        log,
         initGameState,
         advance,
         processPlayerAction,

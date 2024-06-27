@@ -1,6 +1,6 @@
 import React from 'react';
 import { Static } from 'ink';
-import { ActionType, LogMessage, MessageType } from '../game/GameLog';
+import { ActionType, LogMessage, MessageType } from '../game/providers/GameLogProvider';
 import { Speech } from './Speech';
 import { SystemText } from './SystemText';
 import { ErrorText } from './ErrorText';

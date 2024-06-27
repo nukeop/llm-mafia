@@ -1,4 +1,4 @@
-import { ActionType, GameLog, MessageType } from './GameLog';
+import { ActionType, GameLog, MessageType } from './providers/GameLogProvider';
 import { Player, Team } from './Player';
 
 describe('Game log', () => {

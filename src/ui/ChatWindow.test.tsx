@@ -1,7 +1,7 @@
 import { render } from 'ink-testing-library';
 import { ChatWindow } from './ChatWindow';
 import React from 'react';
-import { ActionType, GameLog } from '../game/GameLog';
+import { ActionType, GameLog } from '../game/providers/GameLogProvider';
 import { Player, Team } from '../game/Player';
 
 describe('Chat window', () => {

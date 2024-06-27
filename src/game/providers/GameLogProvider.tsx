@@ -1,5 +1,6 @@
+import React, { createContext, useContext, useState } from 'react';
 import { ChatCompletionMessageParam } from 'openai/resources';
-import { Player } from './Player';
+import { Player } from '../Player';
 
 export enum ActionType {
   Thought = 'thought',
@@ -46,51 +47,82 @@ export type LogMessage =
   | ErrorMessage
   | AnnouncerMessage;
 
-export class GameLog {
-  #messages: LogMessage[] = [];
-
-  constructor() {
-    this.#messages = [];
-  }
-
-  get messages(): LogMessage[] {
-    return this.#messages;
-  }
-
-  addPlayerAction(
+type GameLogContextValue = {
+  messages: LogMessage[];
+  addPlayerAction: (
     player: Player,
     content: string,
     actionType: ActionType,
     callId?: string,
-  ) {
-    this.#messages.push({
-      player,
-      content,
-      type: MessageType.PlayerAction,
-      actionType,
-      callId,
-    });
-  }
+  ) => void;
+  addSystemMessage: (content: string) => void;
+  addErrorMessage: (content: string) => void;
+  addAnnouncerMessage: (content: string) => void;
+  formatLogForLLM: (player: Player) => ChatCompletionMessageParam[];
+  formatLogForGameEnd: () => string;
+};
 
-  addSystemMessage(content: string) {
-    this.#messages.push({ content, type: MessageType.System });
-  }
+const GameLogContext = createContext<GameLogContextValue | undefined>(
+  undefined,
+);
 
-  addErrorMessage(content: string) {
-    this.#messages.push({ content, type: MessageType.Error });
+export const useGameLog = (): GameLogContextValue => {
+  const context = useContext(GameLogContext);
+  if (!context) {
+    throw new Error('useGameLog must be used within a GameLogProvider');
   }
+  return context;
+};
 
-  addAnnouncerMessage(content: string) {
-    this.#messages.push({ content, type: MessageType.Announcer });
-  }
+type GameLogProviderProps = {
+  children: React.ReactNode;
+};
+export const GameLogProvider: React.FC<GameLogProviderProps> = ({
+  children,
+}) => {
+  const [messages, setMessages] = useState<LogMessage[]>([]);
 
-  // Fetch messages in chunks based on a specified range
-  fetchMessagesInRange(startIndex: number, endIndex: number): LogMessage[] {
-    return this.#messages.slice(startIndex, endIndex);
-  }
+  const addPlayerAction = (
+    player: Player,
+    content: string,
+    actionType: ActionType,
+    callId?: string,
+  ) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        player,
+        content,
+        type: MessageType.PlayerAction,
+        actionType,
+        callId,
+      },
+    ]);
+  };
 
-  formatLogForLLM(player: Player): ChatCompletionMessageParam[] {
-    const messages = this.#messages.filter(
+  const addSystemMessage = (content: string) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { content, type: MessageType.System },
+    ]);
+  };
+
+  const addErrorMessage = (content: string) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { content, type: MessageType.Error },
+    ]);
+  };
+
+  const addAnnouncerMessage = (content: string) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { content, type: MessageType.Announcer },
+    ]);
+  };
+
+  const formatLogForLLM = (player: Player) => {
+    const filteredMessages = messages.filter(
       (message) =>
         isSpeech(message) ||
         isAnnouncerMessage(message) ||
@@ -99,38 +131,18 @@ export class GameLog {
         (isEndTurn(message) && (message as PlayerAction).player === player),
     ) as (PlayerAction | AnnouncerMessage)[];
 
-    return messages.reduce((result: ChatCompletionMessageParam[], message) => {
-      if (isAnnouncerMessage(message)) {
-        result.push({
-          role: 'user',
-          content: `[Announcer}: ${message.content}`,
-        });
-      } else if (
-        message.actionType === ActionType.Thought ||
-        message.actionType === ActionType.Vote ||
-        message.actionType === ActionType.EndTurn
-      ) {
-        result.push({
-          role: 'assistant',
-          tool_calls: [
-            {
-              id: message.callId ?? '',
-              type: 'function',
-              function: {
-                name: message.actionType,
-                arguments: JSON.stringify({ content: message.content }),
-              },
-            },
-          ],
-        });
-
-        result.push({
-          role: 'tool',
-          tool_call_id: message.callId ?? '',
-          content: 'Success',
-        });
-      } else {
-        if (message.player === player) {
+    return filteredMessages.reduce(
+      (result: ChatCompletionMessageParam[], message) => {
+        if (isAnnouncerMessage(message)) {
+          result.push({
+            role: 'user',
+            content: `[Announcer}: ${message.content}`,
+          });
+        } else if (
+          message.actionType === ActionType.Thought ||
+          message.actionType === ActionType.Vote ||
+          message.actionType === ActionType.EndTurn
+        ) {
           result.push({
             role: 'assistant',
             tool_calls: [
@@ -138,30 +150,53 @@ export class GameLog {
                 id: message.callId ?? '',
                 type: 'function',
                 function: {
-                  name: ActionType.Speech,
+                  name: message.actionType,
                   arguments: JSON.stringify({ content: message.content }),
                 },
               },
             ],
           });
+
           result.push({
             role: 'tool',
             tool_call_id: message.callId ?? '',
             content: 'Success',
           });
         } else {
-          result.push({
-            role: 'user',
-            content: `[${message.player.name}]: ${message.content}`,
-          });
+          if (message.player === player) {
+            result.push({
+              role: 'assistant',
+              tool_calls: [
+                {
+                  id: message.callId ?? '',
+                  type: 'function',
+                  function: {
+                    name: ActionType.Speech,
+                    arguments: JSON.stringify({ content: message.content }),
+                  },
+                },
+              ],
+            });
+            result.push({
+              role: 'tool',
+              tool_call_id: message.callId ?? '',
+              content: 'Success',
+            });
+          } else {
+            result.push({
+              role: 'user',
+              content: `[${message.player.name}]: ${message.content}`,
+            });
+          }
         }
-      }
-      return result;
-    }, []);
-  }
+        return result;
+      },
+      [],
+    );
+  };
 
-  formatLogForGameEnd(): string {
-    return this.#messages
+  const formatLogForGameEnd = () => {
+    return messages
       .map((message) => {
         if (isSystemMessage(message)) {
           return `[System]: ${message.content}`;
@@ -174,7 +209,9 @@ export class GameLog {
             return `*${message.player.name} votes for ${message.content}*`;
           }
 
-          return `[${message.player.name}](${actionTypeToString(message.actionType)}): ${message.content}`;
+          return `[${message.player.name}](${actionTypeToString(
+            message.actionType,
+          )}): ${message.content}`;
         } else if (isAnnouncerMessage(message)) {
           return `[Announcer]: ${message.content}`;
         } else {
@@ -182,8 +219,24 @@ export class GameLog {
         }
       })
       .join('\n');
-  }
-}
+  };
+
+  console.log(messages);
+
+  const value: GameLogContextValue = {
+    messages,
+    addPlayerAction,
+    addSystemMessage,
+    addErrorMessage,
+    addAnnouncerMessage,
+    formatLogForLLM,
+    formatLogForGameEnd,
+  };
+
+  return (
+    <GameLogContext.Provider value={value}>{children}</GameLogContext.Provider>
+  );
+};
 
 export function isPlayerAction(message: LogMessage): message is PlayerAction {
   return message.type === MessageType.PlayerAction;

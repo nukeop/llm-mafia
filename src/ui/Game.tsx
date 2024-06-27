@@ -2,7 +2,7 @@ import { Box, Spacer, Text, useApp, useInput } from 'ink';
 import Spinner from 'ink-spinner';
 
 import React, { useEffect, useState } from 'react';
-import { ActionType } from '../game/GameLog';
+import { ActionType, useGameLog } from '../game/providers/GameLogProvider';
 import { ChatBox } from './ChatBox';
 import { ChatWindow } from './ChatWindow';
 import { useGameState } from '../game/providers/GameStateProvider';
@@ -12,8 +12,7 @@ type GameProps = { players: number };
 export const Game: React.FC<GameProps> = ({ players }) => {
   const [isLoading, setLoading] = useState(false);
   const { exit } = useApp();
-  const { log, actingPlayer, isHumanTurn, advance, initGameState } =
-    useGameState();
+  const { actingPlayer, isHumanTurn, advance, initGameState } = useGameState();
   useInput(async (input, key) => {
     if (!isHumanTurn() && key.return) {
       setLoading(true);
@@ -21,6 +20,7 @@ export const Game: React.FC<GameProps> = ({ players }) => {
       setLoading(false);
     }
   });
+  const { messages, addPlayerAction } = useGameLog();
 
   useEffect(() => {
     initGameState(players);
@@ -28,12 +28,12 @@ export const Game: React.FC<GameProps> = ({ players }) => {
 
   return (
     <Box padding={2} flexGrow={1} flexDirection="column">
-      <ChatWindow messages={log.messages} linesToShow={10} />
+      <ChatWindow messages={messages} linesToShow={10} />
       <Spacer />
       {isHumanTurn() && (
         <ChatBox
           onSend={async (message) => {
-            log.addPlayerAction(actingPlayer, message, ActionType.Speech);
+            addPlayerAction(actingPlayer, message, ActionType.Speech);
             setLoading(true);
             await advance();
             setLoading(false);

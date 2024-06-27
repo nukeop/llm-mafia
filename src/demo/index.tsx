@@ -1,6 +1,10 @@
 import React from 'react';
 import { render, useInput } from 'ink';
-import { ActionType } from '../game/GameLog';
+import {
+  ActionType,
+  GameLogProvider,
+  useGameLog,
+} from '../game/providers/GameLogProvider';
 import { Game } from '../ui/Game';
 import { sample } from 'lodash';
 import {
@@ -13,15 +17,15 @@ const lorem =
 
 const Demo: React.FC = ({}) => {
   const gameState = useGameState();
+  const { messages, addPlayerAction } = useGameLog();
   useInput((input, key) => {
     if (key.downArrow) {
-      console.log(gameState.log.messages);
-      gameState.log.addPlayerAction(
+      addPlayerAction(
         sample(gameState.machinePlayers)!,
         lorem,
         ActionType.Speech,
       );
-      gameState.log.addPlayerAction(
+      addPlayerAction(
         sample(gameState.machinePlayers)!,
         lorem,
         ActionType.Vote,
@@ -34,8 +38,10 @@ const Demo: React.FC = ({}) => {
 
 (async () => {
   render(
-    <GameStateProvider>
-      <Demo />
-    </GameStateProvider>,
+    <GameLogProvider>
+      <GameStateProvider>
+        <Demo />
+      </GameStateProvider>
+    </GameLogProvider>,
   );
 })();
