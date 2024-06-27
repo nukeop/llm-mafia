@@ -1,23 +1,27 @@
 import React, { createContext, useContext, useState } from 'react';
 import { Player, Team } from '../Player';
 import { GameLog } from '../GameLog';
-import { GameStage } from '../GameStage';
 import { sample } from 'lodash';
-import { names, personalities } from '../../prompts';
 import { OpenAiApiService } from '../../services/OpenAiService';
 import { ActionType } from '../GameLog';
 import Logger from '../../logger';
+import { names } from '../../prompts/names';
+import { personalities } from '../../prompts/personalities';
 
 interface GameStateContextType {
   machinePlayers: Player[];
   humanPlayer: Player;
+  actingPlayer: Player;
   log: GameLog;
-  stage: GameStage;
+  initGameState: (numberOfPlayers: number) => void;
   advance: () => Promise<void>;
   processPlayerAction: () => Promise<void>;
+  isHumanTurn: () => boolean;
 }
 
-const GameStateContext = createContext<GameStateContextType | undefined>(undefined);
+const GameStateContext = createContext<GameStateContextType | undefined>(
+  undefined,
+);
 
 export const useGameState = () => {
   const context = useContext(GameStateContext);
@@ -31,11 +35,15 @@ interface GameStateProviderProps {
   children: React.ReactNode;
 }
 
-export const GameStateProvider: React.FC<GameStateProviderProps> = ({ children }) => {
+export const GameStateProvider: React.FC<GameStateProviderProps> = ({
+  children,
+}) => {
   const [machinePlayers, setMachinePlayers] = useState<Player[]>([]);
-  const [humanPlayer, setHumanPlayer] = useState<Player>(new Player('', Team.Humans));
+  const [humanPlayer, setHumanPlayer] = useState<Player>(
+    new Player('', Team.Humans),
+  );
   const [log, setLog] = useState<GameLog>(new GameLog());
-  const [stage, setStage] = useState<GameStage>(new GameStage(new Player('', Team.Machines)));
+  const [actingPlayer, setActingPlayer] = useState<Player>(humanPlayer);
 
   const initGameState = (numberOfPlayers: number) => {
     let availableNames = names;
@@ -47,26 +55,52 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({ children }
 
     const humanName = sample(names) ?? '';
     const humanPlayerInit = new Player(humanName!, Team.Humans);
-    const stageInit = new GameStage(machinePlayersInit[0]);
 
     setMachinePlayers(machinePlayersInit);
     setHumanPlayer(humanPlayerInit);
-    setStage(stageInit);
+  };
+
+  /**
+   * Proceed to the next player.
+   * If the current player is the last machine player, the next player is the human player.
+   * Otherwise, the next player is the next machine player.
+   */
+  const nextPlayer = () => {
+    if (actingPlayer === humanPlayer) {
+      setActingPlayer(machinePlayers[0]);
+    } else {
+      const currentPlayerIndex = machinePlayers.findIndex(
+        (player) => player === actingPlayer,
+      );
+
+      if (currentPlayerIndex === machinePlayers.length - 1) {
+        setActingPlayer(humanPlayer);
+      } else {
+        const nextPlayerIndex = currentPlayerIndex + 1;
+        setActingPlayer(machinePlayers[nextPlayerIndex]);
+      }
+    }
+  };
+
+  const isHumanTurn = (): boolean => {
+    return actingPlayer === humanPlayer;
   };
 
   const advance = async () => {
-    if (stage.actingPlayer === humanPlayer) {
-      stage.nextPlayer();
+    if (actingPlayer === humanPlayer) {
+      nextPlayer();
     } else {
       try {
-        Logger.debug(`Processing machine turn for: ${stage.actingPlayer.name}`);
+        Logger.debug(`Processing machine turn for: ${actingPlayer.name}`);
         await processPlayerAction();
-        stage.nextPlayer();
-        Logger.debug(`Progressing to next player: ${stage.actingPlayer.name}`);
+        nextPlayer();
+        Logger.debug(`Progressing to next player: ${actingPlayer.name}`);
       } catch (error) {
-        log.addErrorMessage('An error occurred while processing the machine turn.');
+        log.addErrorMessage(
+          'An error occurred while processing the machine turn.',
+        );
         log.addErrorMessage((error as Error).message);
-        stage.nextPlayer();
+        nextPlayer();
       }
     }
   };
@@ -88,14 +122,30 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({ children }
 
     if (toolCall) {
       const actionType: ActionType = toolCall?.function.name as ActionType;
-      log.addPlayerAction(stage.actingPlayer, toolCall?.function.arguments!, actionType, toolCall.id);
+      log.addPlayerAction(
+        actingPlayer,
+        toolCall?.function.arguments!,
+        actionType,
+        toolCall.id,
+      );
     } else if (message) {
-      log.addPlayerAction(stage.actingPlayer, message, ActionType.Speech);
+      log.addPlayerAction(actingPlayer, message, ActionType.Speech);
     }
   };
 
   return (
-    <GameStateContext.Provider value={{ machinePlayers, humanPlayer, log, stage, advance, processPlayerAction }}>
+    <GameStateContext.Provider
+      value={{
+        machinePlayers,
+        humanPlayer,
+        actingPlayer,
+        log,
+        initGameState,
+        advance,
+        processPlayerAction,
+        isHumanTurn,
+      }}
+    >
       {children}
     </GameStateContext.Provider>
   );

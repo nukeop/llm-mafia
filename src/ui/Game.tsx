@@ -1,7 +1,6 @@
 import { Box, Spacer, Text, useApp, useInput } from 'ink';
 import Spinner from 'ink-spinner';
 
-import { GameState } from '../game/GameState';
 import React, { useState } from 'react';
 import { ActionType } from '../game/GameLog';
 import { ChatBox } from './ChatBox';
@@ -12,34 +11,30 @@ type GameProps = {};
 export const Game: React.FC<GameProps> = () => {
   const [isLoading, setLoading] = useState(false);
   const { exit } = useApp();
-  const gameState = useGameState();
+  const { log, actingPlayer, isHumanTurn, advance } = useGameState();
   useInput(async (input, key) => {
-    if (!gameState.stage.isHumanTurn() && key.return) {
+    if (!isHumanTurn() && key.return) {
       setLoading(true);
-      await gameState.advance();
+      await advance();
       setLoading(false);
     }
   });
 
   return (
     <Box padding={2} flexGrow={1} flexDirection="column">
-      <ChatWindow messages={gameState.log.messages} linesToShow={10} />
+      <ChatWindow messages={log.messages} linesToShow={10} />
       <Spacer />
-      {gameState.stage.isHumanTurn() && (
+      {isHumanTurn() && (
         <ChatBox
           onSend={async (message) => {
-            gameState.log.addPlayerAction(
-              gameState.stage.actingPlayer,
-              message,
-              ActionType.Speech,
-            );
+            log.addPlayerAction(actingPlayer, message, ActionType.Speech);
             setLoading(true);
-            await gameState.advance();
+            await advance();
             setLoading(false);
           }}
         />
       )}
-      {!gameState.stage.isHumanTurn() && (
+      {!isHumanTurn() && (
         <Box borderStyle="round" borderColor="green">
           {isLoading && (
             <Box>

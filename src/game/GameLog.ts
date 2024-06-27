@@ -15,7 +15,7 @@ export enum MessageType {
   Announcer = 'announcer',
 }
 
-type PlayerAction = {
+export type PlayerAction = {
   player: Player;
   content: string;
   actionType: ActionType;
