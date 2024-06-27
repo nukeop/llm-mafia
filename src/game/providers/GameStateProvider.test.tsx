@@ -7,7 +7,7 @@ import { GameStage } from '../GameStage';
 
 describe('GameStateProvider', () => {
   it('provides game state context with initial values', () => {
-    const wrapper = ({ children }) => <GameStateProvider>{children}</GameStateProvider>;
+    const wrapper = ({ children }: { children: React.ReactNode }) => <GameStateProvider>{children}</GameStateProvider>;
     const { result } = renderHook(() => useGameState(), { wrapper });
 
     expect(result.current.machinePlayers).toEqual([]);
@@ -17,7 +17,7 @@ describe('GameStateProvider', () => {
   });
 
   it('allows advancing game state', async () => {
-    const wrapper = ({ children }) => <GameStateProvider>{children}</GameStateProvider>;
+    const wrapper = ({ children }: { children: React.ReactNode }) => <GameStateProvider>{children}</GameStateProvider>;
     const { result } = renderHook(() => useGameState(), { wrapper });
 
     await act(async () => {
@@ -28,7 +28,7 @@ describe('GameStateProvider', () => {
   });
 
   it('processes player actions', async () => {
-    const wrapper = ({ children }) => <GameStateProvider>{children}</GameStateProvider>;
+    const wrapper = ({ children }: { children: React.ReactNode }) => <GameStateProvider>{children}</GameStateProvider>;
     const { result } = renderHook(() => useGameState(), { wrapper });
 
     await act(async () => {
