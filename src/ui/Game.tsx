@@ -1,17 +1,19 @@
 import { Box, Spacer, Text, useApp, useInput } from 'ink';
 import Spinner from 'ink-spinner';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActionType } from '../game/GameLog';
 import { ChatBox } from './ChatBox';
 import { ChatWindow } from './ChatWindow';
 import { useGameState } from '../game/providers/GameStateProvider';
 
-type GameProps = {};
-export const Game: React.FC<GameProps> = () => {
+type GameProps = { players: number };
+
+export const Game: React.FC<GameProps> = ({ players }) => {
   const [isLoading, setLoading] = useState(false);
   const { exit } = useApp();
-  const { log, actingPlayer, isHumanTurn, advance } = useGameState();
+  const { log, actingPlayer, isHumanTurn, advance, initGameState } =
+    useGameState();
   useInput(async (input, key) => {
     if (!isHumanTurn() && key.return) {
       setLoading(true);
@@ -19,6 +21,10 @@ export const Game: React.FC<GameProps> = () => {
       setLoading(false);
     }
   });
+
+  useEffect(() => {
+    initGameState(players);
+  }, [players]);
 
   return (
     <Box padding={2} flexGrow={1} flexDirection="column">

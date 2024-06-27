@@ -7,6 +7,8 @@ import { ActionType } from '../GameLog';
 import Logger from '../../logger';
 import { names } from '../../prompts/names';
 import { personalities } from '../../prompts/personalities';
+import { tools } from '../../prompts/tools';
+import { createSystemPrompt } from '../../prompts';
 
 interface GameStateContextType {
   machinePlayers: Player[];
@@ -58,6 +60,11 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
 
     setMachinePlayers(machinePlayersInit);
     setHumanPlayer(humanPlayerInit);
+    setActingPlayer(machinePlayersInit[0]);
+  };
+
+  const playerNames = (): string[] => {
+    return [humanPlayer, ...machinePlayers].map((player) => player.name);
   };
 
   /**
@@ -107,12 +114,20 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
 
   const processPlayerAction = async () => {
     const service = new OpenAiApiService();
+    const prompt = createSystemPrompt(
+      actingPlayer.name,
+      playerNames(),
+      personalities.find(
+        (personality) => personality.name === actingPlayer.personality,
+      )?.description!,
+    );
+    const logForLLM = log.formatLogForLLM(actingPlayer);
     const response = await service.createChatCompletion({
       max_tokens: 512,
       model: 'gpt-3.5-turbo',
-      tools: [],
+      tools,
       parallel_tool_calls: false,
-      messages: [{ role: 'system', content: 'Your prompt here' }],
+      messages: [{ role: 'system', content: prompt }, ...logForLLM],
     });
 
     const choice = response.choices[0];
@@ -131,6 +146,8 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
     } else if (message) {
       log.addPlayerAction(actingPlayer, message, ActionType.Speech);
     }
+
+    setLog(log);
   };
 
   return (

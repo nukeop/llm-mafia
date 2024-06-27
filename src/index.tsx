@@ -8,7 +8,7 @@ import { GameStateProvider } from './game/providers/GameStateProvider';
   dotenv.config();
   render(
     <GameStateProvider>
-      <Game />
+      <Game players={3} />
     </GameStateProvider>,
   );
 })();
