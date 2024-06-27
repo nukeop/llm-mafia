@@ -1,6 +1,10 @@
 import React from 'react';
 import { Static } from 'ink';
-import { ActionType, LogMessage, MessageType } from '../game/providers/GameLogProvider';
+import {
+  ActionType,
+  LogMessage,
+  MessageType,
+} from '../game/providers/GameLogProvider';
 import { Speech } from './Speech';
 import { SystemText } from './SystemText';
 import { ErrorText } from './ErrorText';
@@ -8,13 +12,9 @@ import { Vote } from './Vote';
 
 type ChatWindowProps = {
   messages: LogMessage[];
-  linesToShow: number;
 };
 
-export const ChatWindow: React.FC<ChatWindowProps> = ({
-  messages,
-  linesToShow,
-}) => {
+export const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
   return (
     <Static items={messages}>
       {(message, index) => {

@@ -1,12 +1,12 @@
 import { render } from 'ink-testing-library';
 import { ChatWindow } from './ChatWindow';
 import React from 'react';
-import { ActionType, GameLog } from '../game/providers/GameLogProvider';
+import { ActionType } from '../game/providers/GameLogProvider';
 import { Player, Team } from '../game/Player';
 
 describe('Chat window', () => {
   it('renders an empty chat window', () => {
-    const t = render(<ChatWindow linesToShow={10} messages={[]} />);
+    const t = render(<ChatWindow messages={[]} />);
     expect(t.lastFrame()).toMatchSnapshot();
   });
 
@@ -17,7 +17,7 @@ describe('Chat window', () => {
     log.addPlayerAction(player, 'Hello, world!', ActionType.Speech);
     log.addErrorMessage('Error');
     log.addSystemMessage('System message');
-    const t = render(<ChatWindow linesToShow={10} messages={log.messages} />);
+    const t = render(<ChatWindow messages={log.messages} />);
     expect(t.lastFrame()).toMatchSnapshot();
   });
 });

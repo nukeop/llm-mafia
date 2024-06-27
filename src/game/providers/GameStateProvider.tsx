@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { Player, Team } from '../Player';
 import { sample } from 'lodash';
 import { OpenAiApiService } from '../../services/OpenAiService';
@@ -8,6 +14,7 @@ import { names } from '../../prompts/names';
 import { personalities } from '../../prompts/personalities';
 import { tools } from '../../prompts/tools';
 import { createSystemPrompt } from '../../prompts';
+import { safeParse } from '../../json-utils';
 
 interface GameStateContextType {
   machinePlayers: Player[];
@@ -130,7 +137,7 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
     }
   };
 
-  const processPlayerAction = async () => {
+  const processPlayerAction = useCallback(async () => {
     const service = new OpenAiApiService();
     const prompt = createSystemPrompt(
       actingPlayer.name,
@@ -140,6 +147,7 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
       )?.description!,
     );
     const logForLLM = formatLogForLLM(actingPlayer);
+    console.log({ logForLLM });
     const response = await service.createChatCompletion({
       max_tokens: 512,
       model: 'gpt-3.5-turbo',
@@ -154,17 +162,25 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
     const message = choice.message?.content;
 
     if (toolCall) {
-      const actionType: ActionType = toolCall?.function.name as ActionType;
+      const toolCallBody = safeParse(toolCall?.function.arguments!);
+      const action = toolCall?.function.name;
+      const actionType: ActionType = action as ActionType;
       addPlayerAction(
         actingPlayer,
-        toolCall?.function.arguments!,
+        toolCallBody.content,
         actionType,
         toolCall.id,
       );
+
+      if (actionType === ActionType.EndTurn) {
+        return;
+      }
+
+      await processPlayerAction();
     } else if (message) {
       addPlayerAction(actingPlayer, message, ActionType.Speech);
     }
-  };
+  }, [actingPlayer, messages]);
 
   return (
     <GameStateContext.Provider

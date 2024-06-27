@@ -221,8 +221,6 @@ export const GameLogProvider: React.FC<GameLogProviderProps> = ({
       .join('\n');
   };
 
-  console.log(messages);
-
   const value: GameLogContextValue = {
     messages,
     addPlayerAction,
