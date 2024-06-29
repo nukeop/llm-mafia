@@ -128,7 +128,6 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
         Logger.debug(`Processing machine turn for: ${actingPlayer.name}`);
         await processPlayerAction();
         nextPlayer();
-        Logger.debug(`Progressing to next player: ${actingPlayer.name}`);
       } catch (error) {
         addErrorMessage('An error occurred while processing the machine turn.');
         addErrorMessage((error as Error).message);
@@ -147,7 +146,6 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
       )?.description!,
     );
     const logForLLM = formatLogForLLM(actingPlayer);
-    console.log({ logForLLM });
     const response = await service.createChatCompletion({
       max_tokens: 512,
       model: 'gpt-3.5-turbo',
