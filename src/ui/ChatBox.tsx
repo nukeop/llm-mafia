@@ -29,10 +29,8 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ onSend }) => {
 
   return (
     <Box borderStyle="round" borderColor="green">
-      <>
-        <Text color="whiteBright">{'> '}</Text>
-        <Text>{playerInput}</Text>
-      </>
+      <Text color="whiteBright">{'> '}</Text>
+      <Text>{playerInput}</Text>
     </Box>
   );
 };

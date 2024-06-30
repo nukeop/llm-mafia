@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'ink';
+import { Box, Text } from 'ink';
 import { Player, Team } from '../game/Player';
 
 type ThoughtProps = {
@@ -9,10 +9,10 @@ type ThoughtProps = {
 
 export const Thought = ({ player, content }: ThoughtProps) => {
   return (
-    <>
-      <Text backgroundColor="blueBright" color="blue">
+    <Box width="100%">
+      <Text backgroundColor="blue" color="blueBright">
         [{player.name}] thought something...
       </Text>
-    </>
+    </Box>
   );
 };

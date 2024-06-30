@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'ink';
+import { Box, Text } from 'ink';
 import { Player, Team } from '../game/Player';
 
 type VoteProps = {
@@ -8,8 +8,10 @@ type VoteProps = {
 };
 export const Vote = ({ player, content }: VoteProps) => {
   return (
-    <Text color="red">
-      *{player.name} has voted for {content}*
-    </Text>
+    <Box width="100%">
+      <Text backgroundColor="red" color="redBright">
+        *{player.name} has voted for {content}*
+      </Text>
+    </Box>
   );
 };

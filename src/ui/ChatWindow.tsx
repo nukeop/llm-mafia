@@ -9,6 +9,8 @@ import { Speech } from './Speech';
 import { SystemText } from './SystemText';
 import { ErrorText } from './ErrorText';
 import { Vote } from './Vote';
+import { Thought } from './Thought';
+import { EndTurn } from './EndTurn';
 
 type ChatWindowProps = {
   messages: LogMessage[];
@@ -28,6 +30,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
                   content={message.content}
                 />
               );
+            } else if (message.actionType === ActionType.Thought) {
+              return (
+                <Thought
+                  key={index}
+                  player={message.player}
+                  content={message.content}
+                />
+              );
             } else if (message.actionType === ActionType.Vote) {
               return (
                 <Vote
@@ -36,6 +46,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
                   content={message.content}
                 />
               );
+            } else if (message.actionType === ActionType.EndTurn) {
+              return <EndTurn key={index} player={message.player} />;
             }
             break;
           case MessageType.System:

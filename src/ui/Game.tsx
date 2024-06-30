@@ -27,7 +27,7 @@ export const Game: React.FC<GameProps> = ({ players }) => {
   }, [players]);
 
   return (
-    <Box padding={2} flexGrow={1} flexDirection="column">
+    <Box flexGrow={1} flexDirection="column" width="100%">
       <ChatWindow messages={messages} />
       <Spacer />
       {isHumanTurn() && (

@@ -43,12 +43,12 @@ export const tools: ChatCompletionTool[] = [
       parameters: {
         type: 'object',
         properties: {
-          player: {
+          content: {
             type: 'string',
             description: 'The name of the player you want to vote for.',
           },
         },
-        required: ['player'],
+        required: ['content'],
       },
     },
     type: 'function',
