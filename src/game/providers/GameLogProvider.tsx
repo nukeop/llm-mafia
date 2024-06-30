@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { Player } from '../Player';
+import FileLogger from '../../file-logger';
 
 export enum ActionType {
   Thought = 'thought',
@@ -59,7 +60,6 @@ export type GameLogContextValue = {
   addErrorMessage: (content: string) => void;
   addAnnouncerMessage: (content: string) => void;
   formatLogForLLM: (player: Player) => ChatCompletionMessageParam[];
-  formatLogForGameEnd: () => string;
 };
 
 const GameLogContext = createContext<GameLogContextValue | undefined>(
@@ -88,6 +88,7 @@ export const GameLogProvider: React.FC<GameLogProviderProps> = ({
     actionType: ActionType,
     callId?: string,
   ) => {
+    FileLogger.info(playerActionToString(player, content, actionType));
     setMessages((prevMessages) => [
       ...prevMessages,
       {
@@ -101,6 +102,7 @@ export const GameLogProvider: React.FC<GameLogProviderProps> = ({
   };
 
   const addSystemMessage = (content: string) => {
+    FileLogger.info(`[System]: ${content}`);
     setMessages((prevMessages) => [
       ...prevMessages,
       { content, type: MessageType.System },
@@ -108,6 +110,7 @@ export const GameLogProvider: React.FC<GameLogProviderProps> = ({
   };
 
   const addErrorMessage = (content: string) => {
+    FileLogger.error(`[Error]: ${content}`);
     setMessages((prevMessages) => [
       ...prevMessages,
       { content, type: MessageType.Error },
@@ -115,6 +118,7 @@ export const GameLogProvider: React.FC<GameLogProviderProps> = ({
   };
 
   const addAnnouncerMessage = (content: string) => {
+    FileLogger.info(`[Announcer]: ${content}`);
     setMessages((prevMessages) => [
       ...prevMessages,
       { content, type: MessageType.Announcer },
@@ -195,30 +199,20 @@ export const GameLogProvider: React.FC<GameLogProviderProps> = ({
     );
   };
 
-  const formatLogForGameEnd = () => {
-    return messages
-      .map((message) => {
-        if (isSystemMessage(message)) {
-          return `[System]: ${message.content}`;
-        } else if (isPlayerAction(message)) {
-          if (message.actionType === ActionType.EndTurn) {
-            return `*${message.player.name} ends his turn*`;
-          }
+  const playerActionToString = (
+    player: Player,
+    content: string,
+    actionType: ActionType,
+  ): string => {
+    if (actionType === ActionType.EndTurn) {
+      return `*${player.name} ends his turn*`;
+    }
 
-          if (message.actionType === ActionType.Vote) {
-            return `*${message.player.name} votes for ${message.content}*`;
-          }
+    if (actionType === ActionType.Vote) {
+      return `*${player.name} votes for ${content}*`;
+    }
 
-          return `[${message.player.name}](${actionTypeToString(
-            message.actionType,
-          )}): ${message.content}`;
-        } else if (isAnnouncerMessage(message)) {
-          return `[Announcer]: ${message.content}`;
-        } else {
-          return message.content;
-        }
-      })
-      .join('\n');
+    return `[${player.name}](${actionTypeToString(actionType)}): ${content}`;
   };
 
   const value: GameLogContextValue = {
@@ -228,7 +222,6 @@ export const GameLogProvider: React.FC<GameLogProviderProps> = ({
     addErrorMessage,
     addAnnouncerMessage,
     formatLogForLLM,
-    formatLogForGameEnd,
   };
 
   return (

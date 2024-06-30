@@ -55,51 +55,6 @@ describe('Game log provider', () => {
     );
   });
 
-  it('formats the log for game end', async () => {
-    const { result } = renderHook(() => useGameLog(), { wrapper });
-    await waitFor(() => expect(result.current).toBeDefined());
-
-    await act(async () => {
-      result.current.addSystemMessage(
-        'All messages are visible to all players at the end of the game',
-      );
-      result.current.addPlayerAction(
-        { name: 'Mr. Test', team: Team.Machines },
-        'Hello, world!',
-        ActionType.Speech,
-      );
-      result.current.addPlayerAction(
-        { name: 'Mr. Test', team: Team.Machines },
-        'This is what I think',
-        ActionType.Thought,
-      );
-      result.current.addPlayerAction(
-        { name: 'Mr. Test 2', team: Team.Machines },
-        'I too am a player',
-        ActionType.Speech,
-      );
-      result.current.addPlayerAction(
-        { name: 'Mr. Test 2', team: Team.Machines },
-        'And I think this',
-        ActionType.Thought,
-      );
-      result.current.addPlayerAction(
-        { name: 'Mr. Human', team: Team.Machines },
-        'I am a human!',
-        ActionType.Speech,
-      );
-      result.current.addAnnouncerMessage(
-        'Announcements are visible to all players',
-      );
-    });
-
-    await waitFor(() =>
-      expect(result.current.formatLogForGameEnd()).toEqual(
-        '[System]: All messages are visible to all players at the end of the game\n[Mr. Test](Speech): Hello, world!\n[Mr. Test](Thought): This is what I think\n[Mr. Test 2](Speech): I too am a player\n[Mr. Test 2](Thought): And I think this\n[Mr. Human](Speech): I am a human!\n[Announcer]: Announcements are visible to all players',
-      ),
-    );
-  });
-
   it('formats the log for LLM API', async () => {
     const { result } = renderHook(() => useGameLog(), { wrapper });
     await waitFor(() => expect(result.current).toBeDefined());

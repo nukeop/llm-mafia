@@ -6,6 +6,7 @@ import Logger from '../../logger';
 import { names } from '../../prompts/names';
 import { personalities } from '../../prompts/personalities';
 import { useMachinePlayerAction } from '../hooks/useMachinePlayerAction';
+import { logFileName } from '../../file-logger';
 
 interface GameStateContextType {
   machinePlayers: Player[];
@@ -55,6 +56,8 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
     if (!machinePlayers.length || !humanPlayer.name) {
       return;
     }
+
+    addSystemMessage(`Logging to ${logFileName}.`);
 
     addSystemMessage(
       'Welcome to the LLM Mafia! You are the human player. The goal is to blend in while the machines try to eliminate you. Good luck!',
