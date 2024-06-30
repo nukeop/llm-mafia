@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { act, useCallback, useState } from 'react';
 import { Player } from '../Player';
 import { OpenAiApiService } from '../../services/OpenAiService';
 import { createSystemPrompt } from '../../prompts';
@@ -11,9 +11,11 @@ import { ActionType, useGameLog } from '../providers/GameLogProvider';
 export const useMachinePlayerAction = ({
   actingPlayer,
   playerNames,
+  addVote,
 }: {
   actingPlayer: Player;
   playerNames: string[];
+  addVote: (player: Player, target: Player) => void;
 }) => {
   const { messages, addPlayerAction, formatLogForLLM } = useGameLog();
   const [isLoading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ export const useMachinePlayerAction = ({
 
     const response = await service.createChatCompletion({
       max_tokens: 512,
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o',
       tools,
       parallel_tool_calls: false,
       messages: [{ role: 'system', content: prompt }, ...logForLLM],
@@ -55,6 +57,11 @@ export const useMachinePlayerAction = ({
         actionType,
         toolCall.id,
       );
+
+      if (actionType === ActionType.Vote) {
+        const target = new Player(toolCallBody.target, actingPlayer.team);
+        addVote(actingPlayer, target);
+      }
 
       setLastAction(actionType);
 

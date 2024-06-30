@@ -7,6 +7,7 @@ import { names } from '../../prompts/names';
 import { personalities } from '../../prompts/personalities';
 import { useMachinePlayerAction } from '../hooks/useMachinePlayerAction';
 import { logFileName } from '../../file-logger';
+import { useGameRound } from '../hooks/useGameRound';
 
 interface GameStateContextType {
   machinePlayers: Player[];
@@ -42,6 +43,7 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
   );
   const [actingPlayer, setActingPlayer] = useState<Player>(humanPlayer);
   const { addSystemMessage, addErrorMessage } = useGameLog();
+  const { addVote } = useGameRound({ setMachinePlayers });
 
   const playerNames = (): string[] => {
     return [humanPlayer, ...machinePlayers].map((player) => player.name);
@@ -50,6 +52,7 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
   const { processPlayerAction } = useMachinePlayerAction({
     actingPlayer,
     playerNames: playerNames(),
+    addVote,
   });
 
   useEffect(() => {
