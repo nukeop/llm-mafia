@@ -2,6 +2,7 @@ import { render } from 'ink-testing-library';
 import { ChatCompletionMessage } from 'openai/resources';
 import React, { useEffect } from 'react';
 import { act } from 'react';
+import { ActionType } from './game/providers/GameLogProvider';
 
 type Hook<T> = () => T;
 
@@ -89,6 +90,23 @@ class OpenAiMock {
 
   setResponses(responses: ChatCompletionMessage[]) {
     this.responses = responses;
+  }
+
+  addToolUse(name: ActionType, args?: string) {
+    this.responses.push({
+      content: '',
+      role: 'assistant',
+      tool_calls: [
+        {
+          id: '1',
+          type: 'function',
+          function: {
+            name,
+            arguments: args ?? '{}',
+          },
+        },
+      ],
+    });
   }
 
   getMockImplementation() {

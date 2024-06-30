@@ -3,7 +3,7 @@ import React, { act, useEffect } from 'react';
 import { GameStateProvider, useGameState } from './GameStateProvider';
 import { Player, Team } from '../Player';
 import { openAiMock, renderHook, waitFor } from '../../test-utils';
-import { GameLogProvider } from './GameLogProvider';
+import { ActionType, GameLogProvider } from './GameLogProvider';
 import { fill } from 'lodash';
 
 jest.mock('openai');
@@ -54,22 +54,7 @@ describe('GameStateProvider', () => {
 
   it('allows advancing game state', async () => {
     const { result } = renderHook(() => useGameState(), { wrapper });
-    openAiMock.setResponses([
-      {
-        content: '',
-        role: 'assistant',
-        tool_calls: [
-          {
-            id: '1',
-            type: 'function',
-            function: {
-              name: 'end_turn',
-              arguments: '{}',
-            },
-          },
-        ],
-      },
-    ]);
+    openAiMock.addToolUse(ActionType.EndTurn);
     await waitFor(() => expect(result.current).toBeDefined());
 
     expect(result.current.actingPlayer).toEqual(
