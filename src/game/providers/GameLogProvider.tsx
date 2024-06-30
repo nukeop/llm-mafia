@@ -26,17 +26,17 @@ export type PlayerAction = {
   callId?: string;
 };
 
-type SystemMessage = {
+export type SystemMessage = {
   content: string;
   type: MessageType.System;
 };
 
-type ErrorMessage = {
+export type ErrorMessage = {
   content: string;
   type: MessageType.Error;
 };
 
-type AnnouncerMessage = {
+export type AnnouncerMessage = {
   content: string;
   type: MessageType.Announcer;
 };
@@ -47,7 +47,7 @@ export type LogMessage =
   | ErrorMessage
   | AnnouncerMessage;
 
-type GameLogContextValue = {
+export type GameLogContextValue = {
   messages: LogMessage[];
   addPlayerAction: (
     player: Player,
