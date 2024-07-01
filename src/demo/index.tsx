@@ -17,7 +17,8 @@ const lorem =
 
 const Demo: React.FC = ({}) => {
   const gameState = useGameState();
-  const { messages, addPlayerAction } = useGameLog();
+  const { messages, addPlayerAction, addAnnouncerMessage, addErrorMessage } =
+    useGameLog();
   useInput((input, key) => {
     if (key.downArrow) {
       addPlayerAction(
@@ -27,9 +28,21 @@ const Demo: React.FC = ({}) => {
       );
       addPlayerAction(
         sample(gameState.machinePlayers)!,
-        lorem,
+        'test',
         ActionType.Vote,
       );
+      addPlayerAction(
+        sample(gameState.machinePlayers)!,
+        'test',
+        ActionType.Thought,
+      );
+      addPlayerAction(
+        sample(gameState.machinePlayers)!,
+        'test',
+        ActionType.EndTurn,
+      );
+      addAnnouncerMessage('This is a short announcement');
+      addErrorMessage('This is an error message');
     }
   });
 

@@ -12,7 +12,8 @@ type GameProps = { players: number };
 export const Game: React.FC<GameProps> = ({ players }) => {
   const [isLoading, setLoading] = useState(false);
   const { exit } = useApp();
-  const { actingPlayer, isHumanTurn, advance, initGameState } = useGameState();
+  const { actingPlayer, isHumanTurn, advance, initGameState, hasLost } =
+    useGameState();
   useInput(async (input, key) => {
     if (!isHumanTurn() && key.return) {
       setLoading(true);

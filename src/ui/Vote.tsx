@@ -8,9 +8,14 @@ type VoteProps = {
 };
 export const Vote = ({ player, content }: VoteProps) => {
   return (
-    <Box width="100%">
-      <Text backgroundColor="red" color="redBright">
-        *{player.name} has voted for {content}*
+    <Box
+      width="100%"
+      justifyContent="center"
+      borderColor="magenta"
+      borderStyle="single"
+    >
+      <Text backgroundColor="magenta" color="magenta">
+        🗳️ *{player.name} has voted for {content}* 🗳️ {` `}
       </Text>
     </Box>
   );

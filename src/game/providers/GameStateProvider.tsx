@@ -13,6 +13,7 @@ interface GameStateContextType {
   machinePlayers: Player[];
   humanPlayer: Player;
   actingPlayer: Player;
+  hasLost: boolean;
   initGameState: (numberOfPlayers: number) => void;
   advance: () => Promise<void>;
   isHumanTurn: () => boolean;
@@ -37,13 +38,20 @@ type GameStateProviderProps = {
 export const GameStateProvider: React.FC<GameStateProviderProps> = ({
   children,
 }) => {
+  const [isInitialized, setInitialized] = useState(false);
   const [machinePlayers, setMachinePlayers] = useState<Player[]>([]);
   const [humanPlayer, setHumanPlayer] = useState<Player>(
     new Player('', Team.Humans),
   );
   const [actingPlayer, setActingPlayer] = useState<Player>(humanPlayer);
-  const { addSystemMessage, addErrorMessage } = useGameLog();
-  const { addVote } = useGameRound({ setMachinePlayers });
+  const { addSystemMessage, addErrorMessage, addAnnouncerMessage } =
+    useGameLog();
+  const { addVote, hasLost } = useGameRound({
+    machinePlayers,
+    setMachinePlayers,
+    humanPlayer,
+    addAnnouncerMessage,
+  });
 
   const playerNames = (): string[] => {
     return [humanPlayer, ...machinePlayers].map((player) => player.name);
@@ -56,7 +64,7 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
   });
 
   useEffect(() => {
-    if (!machinePlayers.length || !humanPlayer.name) {
+    if (!machinePlayers.length || !humanPlayer.name || isInitialized) {
       return;
     }
 
@@ -69,6 +77,8 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
       `The machine players are:\n ${machinePlayers.map((player) => player.name).join('\n ')}.`,
     );
     addSystemMessage(`You are ${humanPlayer.name}.`);
+
+    setInitialized(true);
   }, [machinePlayers, humanPlayer]);
 
   const initGameState = (numberOfPlayers: number) => {
@@ -141,6 +151,7 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
         initGameState,
         advance,
         isHumanTurn,
+        hasLost,
       }}
     >
       {children}

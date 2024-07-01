@@ -11,6 +11,7 @@ import { ErrorText } from './ErrorText';
 import { Vote } from './Vote';
 import { Thought } from './Thought';
 import { EndTurn } from './EndTurn';
+import { Announcement } from './Announcement';
 
 type ChatWindowProps = {
   messages: LogMessage[];
@@ -18,7 +19,13 @@ type ChatWindowProps = {
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
   return (
-    <Static items={messages}>
+    <Static
+      items={messages}
+      style={{
+        flexDirection: 'column',
+        width: '100%',
+      }}
+    >
       {(message, index) => {
         switch (message.type) {
           case MessageType.PlayerAction:
@@ -50,6 +57,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
               return <EndTurn key={index} player={message.player} />;
             }
             break;
+          case MessageType.Announcer:
+            return <Announcement key={index} content={message.content} />;
           case MessageType.System:
             return <SystemText key={index} content={message.content} />;
           case MessageType.Error:

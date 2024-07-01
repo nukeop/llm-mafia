@@ -1,4 +1,4 @@
-import { Newline, Text } from 'ink';
+import { Box, Newline, Text } from 'ink';
 import React from 'react';
 
 type ErrorTextProps = {
@@ -7,9 +7,18 @@ type ErrorTextProps = {
 
 export const ErrorText = ({ content }: ErrorTextProps) => {
   return (
-    <Text color="red">
-      {content}
-      <Newline />
-    </Text>
+    <Box
+      width="100%"
+      justifyContent="center"
+      paddingY={1}
+      borderStyle="double"
+      borderColor="red"
+    >
+      <Text color="brightRed" backgroundColor="black" bold>
+        {`  🚨  `}
+        {content}
+        {`  🚨  `}
+      </Text>
+    </Box>
   );
 };

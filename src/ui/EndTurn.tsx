@@ -8,9 +8,9 @@ type EndTurnProps = {
 
 export const EndTurn = ({ player }: EndTurnProps) => {
   return (
-    <Box width="100%">
-      <Text backgroundColor="green" color="greenBright">
-        *End of {player.name}'s turn*
+    <Box width="100%" justifyContent="center" paddingY={1}>
+      <Text backgroundColor="green" color="green">
+        ✅ *End of {player.name}'s turn* ✅ {` `}
       </Text>
     </Box>
   );

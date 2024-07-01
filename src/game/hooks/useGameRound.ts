@@ -8,14 +8,19 @@ type Vote = {
   target: Player;
 };
 export const useGameRound = ({
+  machinePlayers,
   setMachinePlayers,
+  humanPlayer,
+  addAnnouncerMessage,
 }: {
+  machinePlayers: Player[];
   setMachinePlayers: (players: Player[]) => void;
+  humanPlayer: Player;
+  addAnnouncerMessage: (message: string) => void;
 }) => {
-  const { addAnnouncerMessage } = useGameLog();
-  const { machinePlayers } = useGameState();
   const [round, setRound] = useState(0);
   const [votes, setVotes] = useState<Vote[]>([]);
+  const [hasLost, setHasLost] = useState(false);
 
   const addVote = (player: Player, target: Player) => {
     setVotes([...votes, { player, target }]);
@@ -26,26 +31,33 @@ export const useGameRound = ({
   };
 
   useEffect(() => {
-    if (votes.length === machinePlayers.length) {
-      const mostVotedPlayer = machinePlayers.reduce(
-        (acc, player) => {
-          const votesForPlayer = votes.filter((vote) => vote.target === player);
-          return votesForPlayer.length > acc.votes
-            ? { player, votes: votesForPlayer.length }
-            : acc;
-        },
-        { player: machinePlayers[0], votes: 0 },
+    if (votes.length > 0 && votes.length === machinePlayers.length) {
+      const allPlayers = [...machinePlayers, humanPlayer];
+      const votesPerPlayer = allPlayers.map((player) => ({
+        player,
+        votes: votes.filter((vote) => vote.target === player).length,
+      }));
+
+      const mostVotedPlayer = votesPerPlayer.reduce((prev, current) =>
+        prev.votes > current.votes ? prev : current,
       ).player;
+
       addAnnouncerMessage(
         `All votes are in! Round ${round + 1} is over. ${mostVotedPlayer.name} has been eliminated!`,
       );
-      addAnnouncerMessage(`That player was a ${mostVotedPlayer.team}!`);
-
-      setMachinePlayers(
-        machinePlayers.filter((player) => player !== mostVotedPlayer),
+      addAnnouncerMessage(
+        `That player was in team: [${mostVotedPlayer.team}]!`,
       );
-      setRound(round + 1);
-      resetVotes();
+
+      if (mostVotedPlayer === humanPlayer) {
+        setHasLost(true);
+      } else {
+        setMachinePlayers(
+          machinePlayers.filter((player) => player !== mostVotedPlayer),
+        );
+        setRound(round + 1);
+        resetVotes();
+      }
     }
   }, [votes]);
 
@@ -54,5 +66,6 @@ export const useGameRound = ({
     votes,
     addVote,
     resetVotes,
+    hasLost,
   };
 };
