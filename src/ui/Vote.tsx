@@ -14,7 +14,7 @@ export const Vote = ({ player, content }: VoteProps) => {
       borderColor="magenta"
       borderStyle="single"
     >
-      <Text backgroundColor="magenta" color="magenta">
+      <Text backgroundColor="magenta" color="black">
         🗳️ *{player.name} has voted for {content}* 🗳️ {` `}
       </Text>
     </Box>

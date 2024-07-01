@@ -9,9 +9,9 @@ type ThoughtProps = {
 
 export const Thought = ({ player, content }: ThoughtProps) => {
   return (
-    <Box width="100%" justifyContent="center" paddingY={1}>
-      <Text backgroundColor="blue" color="blue">
-        💭 *{player.name} thought something...* 💭{` `}
+    <Box width="100%" justifyContent="center">
+      <Text backgroundColor="blue" color="black">
+        💭 *{player.name} thought something...* 💭
       </Text>
     </Box>
   );

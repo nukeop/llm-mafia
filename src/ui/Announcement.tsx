@@ -7,12 +7,10 @@ type AnnouncementProps = {
 
 export const Announcement = ({ content }: AnnouncementProps) => {
   return (
-    <Box width="100%" flexDirection="row">
-      <Spacer />
-      <Text backgroundColor="yellow" color="yellow">
-        📣 {` `} {content} 📣 {` `}
+    <Box width="100%" justifyContent="center">
+      <Text backgroundColor="yellow" color="black">
+        📣 {` `} {content} 📣
       </Text>
-      <Spacer />
     </Box>
   );
 };

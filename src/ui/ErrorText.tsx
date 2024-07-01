@@ -14,7 +14,7 @@ export const ErrorText = ({ content }: ErrorTextProps) => {
       borderStyle="double"
       borderColor="red"
     >
-      <Text color="brightRed" backgroundColor="black" bold>
+      <Text color="red" backgroundColor="black" bold>
         {`  🚨  `}
         {content}
         {`  🚨  `}
