@@ -49,6 +49,9 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
 
   const eliminateMachinePlayer = (player: Player) => {
     setMachinePlayers(machinePlayers.filter((p) => p !== player));
+    if (actingPlayer === player) {
+      nextPlayer();
+    }
   };
 
   const { addVote, hasLost } = useGameRound({
