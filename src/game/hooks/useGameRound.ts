@@ -7,12 +7,12 @@ type Vote = {
 };
 export const useGameRound = ({
   machinePlayers,
-  setMachinePlayers,
+  eliminateMachinePlayer,
   humanPlayer,
   addAnnouncerMessage,
 }: {
   machinePlayers: Player[];
-  setMachinePlayers: (players: Player[]) => void;
+  eliminateMachinePlayer: (player: Player) => void;
   humanPlayer: Player;
   addAnnouncerMessage: (message: string) => void;
 }) => {
@@ -53,9 +53,7 @@ export const useGameRound = ({
         );
         setHasLost(true);
       } else {
-        setMachinePlayers(
-          machinePlayers.filter((player) => player !== mostVotedPlayer),
-        );
+        eliminateMachinePlayer(mostVotedPlayer);
         setRound(round + 1);
         resetVotes();
       }

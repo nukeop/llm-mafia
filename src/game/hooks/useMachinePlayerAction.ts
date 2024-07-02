@@ -11,10 +11,12 @@ import { ActionType, useGameLog } from '../providers/GameLogProvider';
 export const useMachinePlayerAction = ({
   actingPlayer,
   playerNames,
+  players,
   addVote,
 }: {
   actingPlayer: Player;
   playerNames: string[];
+  players: Player[];
   addVote: (player: Player, target: Player) => void;
 }) => {
   const { messages, addPlayerAction, formatLogForLLM } = useGameLog();
@@ -59,7 +61,9 @@ export const useMachinePlayerAction = ({
       );
 
       if (actionType === ActionType.Vote) {
-        const target = new Player(toolCallBody.target, actingPlayer.team);
+        const target = players.find(
+          (player) => player.name === toolCallBody.content,
+        )!;
         addVote(actingPlayer, target);
       }
 

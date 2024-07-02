@@ -13,10 +13,10 @@ interface GameStateContextType {
   machinePlayers: Player[];
   humanPlayer: Player;
   actingPlayer: Player;
-  hasLost: boolean;
   initGameState: (numberOfPlayers: number) => void;
   advance: () => Promise<void>;
   isHumanTurn: () => boolean;
+  hasLost: boolean;
 }
 
 const GameStateContext = createContext<GameStateContextType | undefined>(
@@ -46,20 +46,26 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
   const [actingPlayer, setActingPlayer] = useState<Player>(humanPlayer);
   const { addSystemMessage, addErrorMessage, addAnnouncerMessage } =
     useGameLog();
+
+  const eliminateMachinePlayer = (player: Player) => {
+    setMachinePlayers(machinePlayers.filter((p) => p !== player));
+  };
+
   const { addVote, hasLost } = useGameRound({
     machinePlayers,
-    setMachinePlayers,
+    eliminateMachinePlayer,
     humanPlayer,
     addAnnouncerMessage,
   });
 
   const playerNames = (): string[] => {
-    return [humanPlayer, ...machinePlayers].map((player) => player.name);
+    return [...machinePlayers, humanPlayer].map((player) => player.name);
   };
 
   const { processPlayerAction } = useMachinePlayerAction({
     actingPlayer,
     playerNames: playerNames(),
+    players: [humanPlayer, ...machinePlayers],
     addVote,
   });
 
