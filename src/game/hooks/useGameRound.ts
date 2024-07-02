@@ -19,6 +19,7 @@ export const useGameRound = ({
   const [round, setRound] = useState(0);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [hasLost, setHasLost] = useState(false);
+  const [hasWon, setHasWon] = useState(false);
 
   const addVote = (player: Player, target: Player) => {
     setVotes((prevState) => [...prevState, { player, target }]);
@@ -38,23 +39,42 @@ export const useGameRound = ({
 
       const mostVotedPlayer = votesPerPlayer.reduce((prev, current) =>
         prev.votes > current.votes ? prev : current,
-      ).player;
-
-      addAnnouncerMessage(
-        `All votes are in! Round ${round + 1} is over. ${mostVotedPlayer.name} has been eliminated!`,
-      );
-      addAnnouncerMessage(
-        `That player was in team: [${mostVotedPlayer.team}]!`,
       );
 
-      if (mostVotedPlayer === humanPlayer) {
+      const isTie =
+        votesPerPlayer.filter(
+          (player) => player.votes === mostVotedPlayer.votes,
+        ).length > 1;
+
+      if (!isTie) {
         addAnnouncerMessage(
-          'The human player has been eliminated! Machines win!',
+          `All votes are in! Round ${round + 1} is over. ${mostVotedPlayer.player.name} has been eliminated!`,
         );
-        setHasLost(true);
+        addAnnouncerMessage(
+          `That player was in team: [${mostVotedPlayer.player.team}]!`,
+        );
+
+        if (mostVotedPlayer.player === humanPlayer) {
+          addAnnouncerMessage(
+            'The human player has been eliminated! Machines win!',
+          );
+          setHasLost(true);
+        } else {
+          eliminateMachinePlayer(mostVotedPlayer.player);
+          setRound(round + 1);
+          resetVotes();
+
+          if (machinePlayers.length === 2) {
+            addAnnouncerMessage(
+              'There are only two machines left! The human player wins!',
+            );
+            setHasWon(true);
+          }
+        }
       } else {
-        eliminateMachinePlayer(mostVotedPlayer);
-        setRound(round + 1);
+        addAnnouncerMessage(
+          `All votes are in! Round ${round + 1} is over. It\'s a tie! No one is eliminated this round.`,
+        );
         resetVotes();
       }
     }
@@ -66,5 +86,6 @@ export const useGameRound = ({
     addVote,
     resetVotes,
     hasLost,
+    hasWon,
   };
 };
