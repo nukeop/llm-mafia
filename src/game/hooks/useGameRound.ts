@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Player } from '../Player';
-import { useGameLog } from '../providers/GameLogProvider';
-import { useGameState } from '../providers/GameStateProvider';
 
 type Vote = {
   player: Player;
@@ -23,7 +21,7 @@ export const useGameRound = ({
   const [hasLost, setHasLost] = useState(false);
 
   const addVote = (player: Player, target: Player) => {
-    setVotes([...votes, { player, target }]);
+    setVotes((prevState) => [...prevState, { player, target }]);
   };
 
   const resetVotes = () => {
@@ -50,6 +48,9 @@ export const useGameRound = ({
       );
 
       if (mostVotedPlayer === humanPlayer) {
+        addAnnouncerMessage(
+          'The human player has been eliminated! Machines win!',
+        );
         setHasLost(true);
       } else {
         setMachinePlayers(

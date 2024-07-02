@@ -18,6 +18,9 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ onSend }) => {
     }
 
     if (key.return) {
+      if (playerInput === '') {
+        return;
+      }
       onSend(playerInput);
       setPlayerInput('');
     }
