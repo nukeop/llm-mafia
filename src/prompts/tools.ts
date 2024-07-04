@@ -47,8 +47,12 @@ export const tools: ChatCompletionTool[] = [
             type: 'string',
             description: 'The name of the player you want to vote for.',
           },
+          reason: {
+            type: 'string',
+            description: 'The reason for your vote.',
+          },
         },
-        required: ['content'],
+        required: ['content', 'reason'],
       },
     },
     type: 'function',
@@ -59,7 +63,13 @@ export const tools: ChatCompletionTool[] = [
       description: 'End your turn. The game will proceed to the next player.',
       parameters: {
         type: 'object',
-        properties: {},
+        properties: {
+          reason: {
+            type: 'string',
+            description: 'The reason for ending your turn.',
+          },
+        },
+        required: ['reason'],
       },
     },
     type: 'function',

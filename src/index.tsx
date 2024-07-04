@@ -10,7 +10,7 @@ import { GameLogProvider } from './game/providers/GameLogProvider';
   render(
     <GameLogProvider>
       <GameStateProvider>
-        <Game players={3} />
+        <Game players={4} />
       </GameStateProvider>
     </GameLogProvider>,
   );

@@ -58,6 +58,7 @@ export const useMachinePlayerAction = ({
         toolCallBody.content,
         actionType,
         toolCall.id,
+        toolCallBody.reason,
       );
 
       if (actionType === ActionType.Vote) {

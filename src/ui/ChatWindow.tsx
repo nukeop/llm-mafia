@@ -51,10 +51,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
                   key={index}
                   player={message.player}
                   content={message.content}
+                  reason={message.reason}
                 />
               );
             } else if (message.actionType === ActionType.EndTurn) {
-              return <EndTurn key={index} player={message.player} />;
+              return (
+                <EndTurn
+                  key={index}
+                  player={message.player}
+                  reason={message.reason}
+                />
+              );
             }
             break;
           case MessageType.Announcer:

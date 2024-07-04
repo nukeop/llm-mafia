@@ -83,7 +83,7 @@ export const GameStateProvider: React.FC<GameStateProviderProps> = ({
       'Welcome to the LLM Mafia! You are the human player. The goal is to blend in while the machines try to eliminate you. Good luck!',
     );
     addSystemMessage(
-      `The machine players are:\n ${machinePlayers.map((player) => player.name).join('\n ')}.`,
+      `The machine players are:\n ${machinePlayers.map((player) => `${player.name} - ${player.personality}`).join('\n ')}.`,
     );
     addSystemMessage(`You are ${humanPlayer.name}.`);
 

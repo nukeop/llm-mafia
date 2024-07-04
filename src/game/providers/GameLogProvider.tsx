@@ -22,6 +22,7 @@ export type PlayerAction = {
   content: string;
   actionType: ActionType;
   type: MessageType.PlayerAction;
+  reason?: string;
 
   // OpenAI API call ID
   callId?: string;
@@ -55,6 +56,7 @@ export type GameLogContextValue = {
     content: string,
     actionType: ActionType,
     callId?: string,
+    reason?: string,
   ) => void;
   addSystemMessage: (content: string) => void;
   addErrorMessage: (content: string) => void;
@@ -87,6 +89,7 @@ export const GameLogProvider: React.FC<GameLogProviderProps> = ({
     content: string,
     actionType: ActionType,
     callId?: string,
+    reason?: string,
   ) => {
     FileLogger.info(playerActionToString(player, content, actionType));
     setMessages((prevMessages) => [
@@ -97,6 +100,7 @@ export const GameLogProvider: React.FC<GameLogProviderProps> = ({
         type: MessageType.PlayerAction,
         actionType,
         callId,
+        reason,
       },
     ]);
   };
