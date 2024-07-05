@@ -13,9 +13,11 @@ export const EndTurn = ({ player, reason }: EndTurnProps) => {
       <Text backgroundColor="green" color="black">
         ✅ *End of {player.name}'s turn* ✅
       </Text>
-      <Text backgroundColor="green" color="black">
-        Reason: {reason}
-      </Text>
+      {reason && (
+        <Text backgroundColor="green" color="black">
+          Reason: {reason}
+        </Text>
+      )}
     </Box>
   );
 };

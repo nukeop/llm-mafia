@@ -19,9 +19,11 @@ export const Vote = ({ player, content, reason }: VoteProps) => {
       <Text backgroundColor="magenta" color="black">
         🗳️ *{player.name} has voted for {content}* 🗳️ {` `}
       </Text>
-      <Text backgroundColor="magenta" color="black">
-        Reason: {reason}
-      </Text>
+      {reason && (
+        <Text backgroundColor="magenta" color="black">
+          Reason: {reason}
+        </Text>
+      )}
     </Box>
   );
 };
